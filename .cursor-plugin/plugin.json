@@ -1,0 +1,24 @@
+{
+  "name": "brave-search",
+  "displayName": "Brave Search",
+  "version": "1.0.0",
+  "description": "Brave Search skills + bx CLI commands for AI-grounded web search, RAG/LLM context, deep research, news, images, videos, and places.",
+  "author": {
+    "name": "Brave Software"
+  },
+  "homepage": "https://brave.com/search/api/",
+  "repository": "https://github.com/brave/brave-search-cursor-plugin",
+  "license": "MIT",
+  "keywords": [
+    "brave",
+    "search",
+    "web-search",
+    "rag",
+    "llm-context",
+    "grounding",
+    "research",
+    "news",
+    "goggles"
+  ],
+  "logo": "https://brave.com/static-assets/images/brave-logo-sans-text.svg"
+}
