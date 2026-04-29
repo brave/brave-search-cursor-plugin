@@ -121,7 +121,6 @@ Per the [Cursor plugins reference](https://cursor.com/docs/reference/plugins):
 
 - Skills are derived from [`brave/brave-search-skills`](https://github.com/brave/brave-search-skills) (MIT, © Brave Software).
 - The `bx` CLI lives at [`brave/brave-search-cli`](https://github.com/brave/brave-search-cli) (MIT, © Brave Software).
-- Plugin scaffolding follows [`cursor/plugin-template`](https://github.com/cursor/plugin-template) and the [Cursor plugins reference](https://cursor.com/docs/reference/plugins).
 
 ## License
 
