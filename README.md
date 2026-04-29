@@ -109,6 +109,7 @@ Per the [Cursor plugins reference](https://cursor.com/docs/reference/plugins):
 ├── .cursor-plugin/plugin.json   # plugin manifest
 ├── README.md
 ├── LICENSE                      # MIT
+├── assets/logo.svg              # marketplace logo
 ├── rules/                       # 1 rule (prefer-bx + citation standards)
 ├── skills/                      # 7 SKILL.md files: bx, answers, llm-context,
 │                                #   web-search, news-search, images-search,

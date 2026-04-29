@@ -20,5 +20,5 @@
     "news",
     "goggles"
   ],
-  "logo": "https://brave.com/static-assets/images/brave-logo-sans-text.svg"
+  "logo": "assets/logo.svg"
 }
