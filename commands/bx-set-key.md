@@ -12,13 +12,16 @@ the key without exposing it in shell history or process listings.
 
 1. **Verify install.** Run `bx --version`. If it fails, run `/bx-install`
    first and stop.
-2. **Check whether a key is already set:**
+2. **Check whether a key is already set** without printing it:
 
    ```bash
-   bx config show-key
+   bx config show-key >/dev/null 2>&1 && echo "key already set" || echo "no key set"
    ```
 
-   If it prints a key, ask the user whether to overwrite before proceeding.
+   Never run `bx config show-key` directly — its stdout is the plaintext key,
+   which would land in this chat's context (and from there in the model
+   provider's logs). If the check reports "key already set", ask the user
+   whether to overwrite before proceeding.
 3. **Run interactive set-key:**
 
    ```bash
@@ -34,7 +37,8 @@ the key without exposing it in shell history or process listings.
    - macOS: `~/Library/Application Support/brave-search/config.json`
    - Windows: `%APPDATA%\brave-search\config.json`
 
-4. **Verify** with `bx config show-key`. Then sanity-check connectivity:
+4. **Verify** with the same `bx config show-key >/dev/null 2>&1` presence
+   check (do **not** print the key). Then sanity-check connectivity:
 
    ```bash
    bx web "test" --count 1

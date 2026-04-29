@@ -205,7 +205,7 @@ echo '{"messages":[{"role":"user","content":"what are the OWASP top 10 vulnerabi
 | 0 | Success | Process results |
 | 1 | Client error (bad request) | Fix query/parameters |
 | 2 | Usage error (bad flags) | Fix CLI arguments |
-| 3 | Auth/permission error (401/403) | Check API key: `bx config show-key` |
+| 3 | Auth/permission error (401/403) | Have the user re-run `bx config set-key` — do **not** call `bx config show-key`, its stdout is the plaintext key |
 | 4 | Rate limited (429) | Retry after delay |
 | 5 | Server/network error | Retry with backoff |
 

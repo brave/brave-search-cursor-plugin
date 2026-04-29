@@ -30,10 +30,14 @@ goes into a per-OS config file (not an env var) and never enters shell
 history:
 
 ```bash
-bx config set-key      # interactive — hidden prompt, no shell history
-bx config show-key     # verify
-bx config path         # see where the config lives
+bx config set-key                                      # interactive — hidden prompt, no shell history
+bx config show-key >/dev/null 2>&1 && echo "key set"   # presence check (doesn't print the key)
+bx config path                                         # see where the config lives
 ```
+
+> Avoid running `bx config show-key` directly — its stdout is the plaintext
+> key. Safe in your own terminal, but if an AI agent runs it the key lands
+> in the agent's chat context and, from there, in the model provider's logs.
 
 Config locations:
 

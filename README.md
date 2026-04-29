@@ -2,22 +2,22 @@
 
 Brave Search skills and `bx` CLI commands for the [Cursor](https://cursor.com)
 AI agent: token-budgeted web grounding, AI-synthesized answers, deep research,
-news, images, videos, and places — all through Brave's
+news, images, and videos — all through Brave's
 [independent web index](https://brave.com/search/api/).
 
 ## Features
 
-| Capability | Skill | Command |
-|--|--|--|
-| **All-in-one CLI (recommended)** | `bx` | `/bx-search`, `/bx-answers`, `/bx-research`, `/bx-news`, `/bx-debug` |
-| **RAG / LLM grounding** | `llm-context` | (covered by `/bx-search`) |
-| **AI answers (single-shot)** | `answers` | `/bx-answers` |
-| **Deep research** | `answers` | `/bx-research` |
-| **Web search** | `web-search` | (covered by `/bx-search`) |
-| **News** | `news-search` | `/bx-news` |
-| **Images** | `images-search` | — |
-| **Videos** | `videos-search` | — |
-| **Setup** | — | `/bx-install`, `/bx-set-key` |
+| Capability                       | Skill           | Command                                                              |
+| -------------------------------- | --------------- | -------------------------------------------------------------------- |
+| **All-in-one CLI (recommended)** | `bx`            | `/bx-search`, `/bx-answers`, `/bx-research`, `/bx-news`, `/bx-debug` |
+| **RAG / LLM grounding**          | `llm-context`   | (covered by `/bx-search`)                                            |
+| **AI answers (single-shot)**     | `answers`       | `/bx-answers`                                                        |
+| **Deep research**                | `answers`       | `/bx-research`                                                       |
+| **Web search**                   | `web-search`    | (covered by `/bx-search`)                                            |
+| **News**                         | `news-search`   | `/bx-news`                                                           |
+| **Images**                       | `images-search` | —                                                                    |
+| **Videos**                       | `videos-search` | —                                                                    |
+| **Setup**                        | —               | `/bx-install`, `/bx-set-key`                                         |
 
 Plus a single rule (`rules/prefer-bx-for-web-search.mdc`) that nudges the agent
 to use `bx`/Brave Search for web lookups and enforces citation standards.
@@ -65,10 +65,15 @@ bash install.sh --uninstall  # tear down
 
 The script (a) symlinks this checkout into `~/.cursor/plugins/local/brave-search`
 for live iteration, (b) registers the plugin in
-`~/.claude/plugins/installed_plugins.json`, and (c) enables it in
+`~/.claude/plugins/installed_plugins.json` under the id
+`brave-search@local` (the `@local` suffix lets it coexist with a marketplace
+install of plain `brave-search`), and (c) enables it in
 `~/.claude/settings.json`'s `enabledPlugins`. Cursor shares its plugin registry
 with Claude Code, so all three steps are required — symlinking alone is not
-enough for the plugin to be discovered.
+enough for the plugin to be discovered. (If your Cursor build doesn't pick up
+the local plugin after these steps, the registry-sharing assumption may have
+changed; check the [Cursor plugins reference](https://cursor.com/docs/reference/plugins)
+for the current local-dev path.)
 
 After install, reload Cursor and verify in chat that the `bx` skill and
 `/bx-search` command are visible. Validate the manifest before submission:
@@ -104,9 +109,10 @@ Per the [Cursor plugins reference](https://cursor.com/docs/reference/plugins):
 ├── .cursor-plugin/plugin.json   # plugin manifest
 ├── README.md
 ├── LICENSE                      # MIT
-├── assets/logo.svg              # marketplace logo
 ├── rules/                       # 1 rule (prefer-bx + citation standards)
-├── skills/                      # 11 SKILL.md files (one per endpoint + bx)
+├── skills/                      # 7 SKILL.md files: bx, answers, llm-context,
+│                                #   web-search, news-search, images-search,
+│                                #   videos-search
 ├── commands/                    # 7 /bx-* slash commands
 ├── docs/api-key-setup.md
 ├── install.sh                   # local-dev install/uninstall helper

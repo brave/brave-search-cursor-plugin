@@ -3,8 +3,8 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import { fileURLToPath } from "node:url";
 
-const repoRoot = process.cwd();
 const errors = [];
 const warnings = [];
 
@@ -23,6 +23,21 @@ async function pathExists(p) {
     return true;
   } catch {
     return false;
+  }
+}
+
+// Walk up from `start` until we find a directory containing
+// `.cursor-plugin/plugin.json`. Lets the validator be invoked from anywhere,
+// not just the repo root.
+async function findRepoRoot(start) {
+  let dir = start;
+  while (true) {
+    if (await pathExists(path.join(dir, ".cursor-plugin", "plugin.json"))) {
+      return dir;
+    }
+    const parent = path.dirname(dir);
+    if (parent === dir) return null;
+    dir = parent;
   }
 }
 
@@ -46,12 +61,34 @@ function normalizeNewlines(content) {
   return content.replace(/\r\n/g, "\n");
 }
 
-function parseFrontmatter(content) {
+// Strip surrounding "..." or '...' quotes from a frontmatter value.
+function stripQuotes(value) {
+  if (value.length >= 2) {
+    const first = value[0];
+    const last = value[value.length - 1];
+    if ((first === '"' && last === '"') || (first === "'" && last === "'")) {
+      return value.slice(1, -1);
+    }
+  }
+  return value;
+}
+
+function parseFrontmatter(content, rel) {
   const normalized = normalizeNewlines(content);
   if (!normalized.startsWith("---\n")) return null;
   const closingIndex = normalized.indexOf("\n---\n", 4);
-  if (closingIndex === -1) return null;
-  const block = normalized.slice(4, closingIndex);
+  if (closingIndex === -1) {
+    // Allow `---` at very end of file (no trailing newline).
+    if (normalized.endsWith("\n---")) {
+      addWarning(`frontmatter in ${rel} is missing the trailing newline after "---"`);
+      return parseBlock(normalized.slice(4, normalized.length - 4));
+    }
+    return null;
+  }
+  return parseBlock(normalized.slice(4, closingIndex));
+}
+
+function parseBlock(block) {
   const fields = {};
   for (const line of block.split("\n")) {
     const trimmed = line.trim();
@@ -59,7 +96,7 @@ function parseFrontmatter(content) {
     const sep = line.indexOf(":");
     if (sep === -1) continue;
     const key = line.slice(0, sep).trim();
-    const value = line.slice(sep + 1).trim();
+    const value = stripQuotes(line.slice(sep + 1).trim());
     fields[key] = value;
   }
   return fields;
@@ -100,8 +137,14 @@ function extractPathValues(value) {
   return [];
 }
 
-async function validateReferencedPath(fieldName, value) {
-  if (value.startsWith("http://") || value.startsWith("https://")) return;
+async function validateReferencedPath(repoRoot, fieldName, value) {
+  if (value.startsWith("http://")) {
+    addError(
+      `manifest field "${fieldName}" uses http:// URL "${value}". Use https://.`
+    );
+    return;
+  }
+  if (value.startsWith("https://")) return;
   if (!isSafeRelativePath(value)) {
     addError(
       `manifest field "${fieldName}" has invalid path "${value}". Use a relative path without ".." or absolute prefixes.`
@@ -114,10 +157,10 @@ async function validateReferencedPath(fieldName, value) {
   }
 }
 
-async function validateFrontmatterFile(filePath, componentName, requiredKeys) {
+async function validateFrontmatterFile(repoRoot, filePath, componentName, requiredKeys) {
   const content = await fs.readFile(filePath, "utf8");
-  const parsed = parseFrontmatter(content);
   const rel = path.relative(repoRoot, filePath);
+  const parsed = parseFrontmatter(content, rel);
   if (!parsed) {
     addError(`${componentName} file missing YAML frontmatter: ${rel}`);
     return;
@@ -129,13 +172,13 @@ async function validateFrontmatterFile(filePath, componentName, requiredKeys) {
   }
 }
 
-async function validateComponentDirs() {
+async function validateComponentDirs(repoRoot) {
   const rulesDir = path.join(repoRoot, "rules");
   if (await pathExists(rulesDir)) {
     for (const f of await walkFiles(rulesDir)) {
       const ext = path.extname(f).toLowerCase();
       if ([".md", ".mdc", ".markdown"].includes(ext)) {
-        await validateFrontmatterFile(f, "rule", ["description"]);
+        await validateFrontmatterFile(repoRoot, f, "rule", ["description"]);
       }
     }
   }
@@ -144,7 +187,7 @@ async function validateComponentDirs() {
   if (await pathExists(skillsDir)) {
     for (const f of await walkFiles(skillsDir)) {
       if (path.basename(f) === "SKILL.md") {
-        await validateFrontmatterFile(f, "skill", ["name", "description"]);
+        await validateFrontmatterFile(repoRoot, f, "skill", ["name", "description"]);
       }
     }
   }
@@ -154,7 +197,7 @@ async function validateComponentDirs() {
     for (const f of await walkFiles(agentsDir)) {
       const ext = path.extname(f).toLowerCase();
       if ([".md", ".mdc", ".markdown"].includes(ext)) {
-        await validateFrontmatterFile(f, "agent", ["name", "description"]);
+        await validateFrontmatterFile(repoRoot, f, "agent", ["name", "description"]);
       }
     }
   }
@@ -164,7 +207,7 @@ async function validateComponentDirs() {
     for (const f of await walkFiles(commandsDir)) {
       const ext = path.extname(f).toLowerCase();
       if ([".md", ".mdc", ".markdown", ".txt"].includes(ext)) {
-        await validateFrontmatterFile(f, "command", ["name", "description"]);
+        await validateFrontmatterFile(repoRoot, f, "command", ["name", "description"]);
       }
     }
   }
@@ -185,6 +228,15 @@ function summarizeAndExit() {
 }
 
 async function main() {
+  // Locate the repo root from the script's own location, then fall back to
+  // process.cwd() so the validator works whether invoked as
+  // `node scripts/validate-template.mjs` (from repo root) or by absolute path.
+  const scriptDir = path.dirname(fileURLToPath(import.meta.url));
+  const repoRoot =
+    (await findRepoRoot(scriptDir)) ||
+    (await findRepoRoot(process.cwd())) ||
+    process.cwd();
+
   const manifestPath = path.join(repoRoot, ".cursor-plugin", "plugin.json");
   const manifest = await readJsonFile(manifestPath, "Plugin manifest");
   if (!manifest) {
@@ -202,11 +254,11 @@ async function main() {
   for (const f of fields) {
     if (manifest[f] === undefined) continue;
     for (const v of extractPathValues(manifest[f])) {
-      await validateReferencedPath(f, v);
+      await validateReferencedPath(repoRoot, f, v);
     }
   }
 
-  await validateComponentDirs();
+  await validateComponentDirs(repoRoot);
 
   const skillsDir = path.join(repoRoot, "skills");
   if (await pathExists(skillsDir)) {
@@ -228,13 +280,19 @@ async function main() {
     }
   }
 
-  const hooksPath = path.join(repoRoot, "hooks", "hooks.json");
-  if (!(await pathExists(hooksPath))) {
-    addWarning("no hooks/hooks.json file found (only needed when using hooks).");
+  // Only warn about hooks/MCP files when the manifest actually references
+  // those subsystems. Otherwise the warnings are noise on every run.
+  if (manifest.hooks !== undefined) {
+    const hooksPath = path.join(repoRoot, "hooks", "hooks.json");
+    if (!(await pathExists(hooksPath))) {
+      addWarning("manifest references hooks but hooks/hooks.json is missing.");
+    }
   }
-  const mcpPath = path.join(repoRoot, "mcp.json");
-  if (!(await pathExists(mcpPath))) {
-    addWarning("no mcp.json file found (only needed when using MCP servers).");
+  if (manifest.mcpServers !== undefined) {
+    const mcpPath = path.join(repoRoot, "mcp.json");
+    if (!(await pathExists(mcpPath))) {
+      addWarning("manifest references mcpServers but mcp.json is missing.");
+    }
   }
 
   summarizeAndExit();

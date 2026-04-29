@@ -16,7 +16,9 @@ Install or update the Brave Search CLI (`bx`) on the user's machine.
 2. **Check for an existing install** by running `bx --version`. If a recent
    version already exists, ask the user whether to reinstall before
    proceeding.
-3. **Run the installer.**
+3. **Run the installer.** The shell/PowerShell script is open source — for
+   security-conscious users, fetch it first (`curl ... -o install.sh`) and
+   review before piping to the interpreter.
 
    **macOS / Linux / WSL:**
 
@@ -45,5 +47,3 @@ Install or update the Brave Search CLI (`bx`) on the user's machine.
   - Build from source with `cargo install --git https://github.com/brave/brave-search-cli` (requires Rust toolchain).
   - Download a release binary from
     <https://github.com/brave/brave-search-cli/releases> and place on `$PATH`.
-- The installer is a small POSIX shell script (`scripts/install.sh`) — review
-  it before running if you're security-conscious; it's open source.
