@@ -5,7 +5,7 @@ description: "Recent news with freshness filtering via `bx news`. Usage: /bx-new
 
 # News Search (Brave)
 
-Use the **news-search** skill (or the **bx** skill) to fetch recent news for:
+Use the **brave-news-search** skill (or the **bx** skill) to fetch recent news for:
 $ARGUMENTS
 
 Default invocation: `bx news "$ARGUMENTS" --freshness pw`. Tune freshness
@@ -21,5 +21,5 @@ Add `--exclude-site medium.com` if SEO-blog noise crowds out primary sources;
 add `--include-site reuters.com` (etc.) to allowlist authoritative outlets.
 
 Follow the skill instructions exactly, including citation standards and the
-fallback contract: try `bx`, then Brave Search MCP tools if connected, then
-the matching curl skill, then stop and point the user at `/bx-setup`.
+fallback contract: try `bx`, then the matching curl skill, then stop and
+point the user at `/bx-setup`.

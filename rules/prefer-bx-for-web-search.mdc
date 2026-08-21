@@ -1,17 +1,17 @@
 ---
-description: Contextual awareness for Brave Search — suggests using bx or the Brave Search MCP tools when the user's request needs live web data, grounding, docs, news, or research
+description: Contextual awareness for Brave Search — suggests using the bx CLI when the user's request needs live web data, grounding, docs, news, or research
 alwaysApply: true
 ---
 
 # Brave Search awareness
 
-You have access to Brave Search via the `bx` CLI and the Brave Search MCP tools. Use them proactively when relevant:
+You have access to Brave Search via the `bx` CLI. Use it proactively when relevant:
 
-- **Live web, docs, errors, fact-check**: `bx "<query>"` (token-budgeted RAG) or MCP `brave_llm_context`
-- **Ranked hits / forums / SERP**: `bx web "<query>"` or MCP `brave_web_search`
-- **Cited explanation**: `bx answers "<question>"` or `/bx-answers` (not on MCP)
+- **Live web, docs, errors, fact-check**: `bx "<query>"` (token-budgeted RAG)
+- **Ranked hits / forums / SERP**: `bx web "<query>"`
+- **Cited explanation**: `bx answers "<question>"` or `/bx-answers`
 - **Deep research**: `bx answers "<topic>" --enable-research` or `/bx-research`
-- **News**: `bx news "<query>"` or MCP `brave_news_search`
-- **Images / videos / places**: MCP `brave_image_search`, `brave_video_search`, `brave_place_search` / `brave_local_search`
+- **News**: `bx news "<query>"`
+- **Images / videos / places**: `bx images`, `bx videos`, `bx places`
 
-Prefer these over hand-rolled curl/scrape. Cite claims as `[title](url)` from search output only.
+Prefer these over hand-rolled curl/scrape. Cite claims as `[title](url)` from search output only. If `bx` is missing, tell the user to run `/bx-setup` (then `/bx-status`).

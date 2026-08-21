@@ -1,6 +1,6 @@
 ---
-name: llm-context
-description: Returns pre-extracted, token-budgeted web content (text, tables, code) for RAG and agent reasoning. Use when grounding a claim, looking up documentation, fact-checking, or gathering sources the agent will reason over. Prefer answers for a finished explanation.
+name: brave-llm-context
+description: "Returns pre-extracted, token-budgeted web content (text, tables, code) from Brave Search for RAG and agent reasoning. Use when grounding a claim, looking up documentation, fact-checking, or gathering sources the agent will reason over. Prefer brave-answers / bx answers for a finished cited explanation. Prefer the bx CLI when it is on PATH."
 allowed-tools: Bash(curl:*), Bash(bx:*)
 compatibility: Requires `curl`, a Brave Search API key (`BRAVE_API_KEY`), and network access to api.search.brave.com.
 ---
@@ -9,9 +9,11 @@ compatibility: Requires `curl`, a Brave Search API key (`BRAVE_API_KEY`), and ne
 
 Ground a query in real web content for: $ARGUMENTS
 
+If `$ARGUMENTS` is empty, use the user's query.
+
 ## When to pick this skill
 
-This is the right skill when _the agent_ will reason over the web content — RAG, agent tool calls, fact-checking, doc lookup. Use `bx web` or MCP `brave_web_search` for raw ranked hits, `answers` for an end-to-end synthesized answer. If `bx` is on PATH, `bx "$ARGUMENTS"` calls this same endpoint with sensible defaults.
+This is the right skill when _the agent_ will reason over the web content — RAG, agent tool calls, fact-checking, doc lookup. Use `bx web` for raw ranked hits, `brave-answers` for an end-to-end synthesized answer. If `bx` is on PATH, `bx "$ARGUMENTS"` calls this same endpoint with sensible defaults.
 
 ## Canonical call
 
@@ -79,11 +81,10 @@ Pull `grounding.generic[]` — `snippets` are pre-extracted, query-relevant chun
 
 Every fact pulled from a snippet gets `[Title](URL)` — only cite URLs present in `grounding.generic[].url`. End with a Sources section.
 
-## If `bx`, MCP, `curl`, or the API key is unavailable
+## If `bx`, `curl`, or the API key is unavailable
 
 1. Prefer `bx` when it is on PATH (`bx "$ARGUMENTS"`).
-2. If `bx` is missing, use `brave_llm_context` when the MCP server is connected.
-3. Otherwise use this skill's `curl` call with `BRAVE_API_KEY`.
-4. If none of those can authenticate, **stop**. Tell the user to run
-   `/bx-setup` (Configure for MCP, `/bx-set-key` for the CLI). See
+2. If `bx` is missing, use this skill's `curl` call with `BRAVE_API_KEY`.
+3. If neither can authenticate, **stop**. Tell the user to run
+   `/bx-setup` (then `/bx-set-key` if the CLI is installed). See
    [`docs/api-key-setup.md`](../../docs/api-key-setup.md).

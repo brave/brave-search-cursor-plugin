@@ -5,7 +5,7 @@ description: "AI-grounded answer with citations via `bx answers --no-stream` (Br
 
 # Answers (Brave)
 
-Use the **answers** skill (or the **bx** skill, whichever is available) to get
+Use the **brave-answers** skill (or the **bx** skill, whichever is available) to get
 a synthesized AI answer with citations for: $ARGUMENTS
 
 Default invocation: `bx answers "$ARGUMENTS" --no-stream`. The answer is at
@@ -16,5 +16,5 @@ If the request reads like a deep-research topic (multi-source comparison,
 instead — it explores many more sources but takes ~5 minutes.
 
 Follow the skill instructions exactly, including citation standards and the
-fallback contract: try `bx`, then the matching curl skill (Answers is not on
-MCP), then stop and point the user at `/bx-setup`.
+fallback contract: try `bx`, then the matching curl skill, then stop and
+point the user at `/bx-setup`.

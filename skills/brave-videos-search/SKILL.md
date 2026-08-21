@@ -1,6 +1,6 @@
 ---
-name: videos-search
-description: Returns videos with title, URL, duration, views, and creator. Use when the user explicitly wants video content such as conference talks, tutorials, or demos.
+name: brave-videos-search
+description: "Returns videos with title, URL, duration, views, and creator from Brave Search. Use only when the user explicitly wants video content such as conference talks, tutorials, or demos. Prefer `bx videos` when the CLI is on PATH."
 allowed-tools: Bash(curl:*), Bash(bx:*)
 compatibility: Requires `curl`, a Brave Search API key (`BRAVE_API_KEY`), and network access to api.search.brave.com.
 ---
@@ -9,9 +9,11 @@ compatibility: Requires `curl`, a Brave Search API key (`BRAVE_API_KEY`), and ne
 
 Find videos for: $ARGUMENTS
 
+If `$ARGUMENTS` is empty, use the user's query.
+
 ## When to pick this skill
 
-Reach for this when the user explicitly wants video content — conference talks, tutorials, demos. For "explain X" prefer `llm-context` (text grounding) or `answers` (synthesized answer).
+Reach for this when the user explicitly wants video content — conference talks, tutorials, demos. For "explain X" prefer `brave-llm-context` (text grounding) or `brave-answers` (synthesized answer).
 
 ## Canonical call
 
@@ -59,11 +61,10 @@ Pull `results[].url`, `results[].video.duration`, `results[].video.creator`, `re
 
 Cite as `[Title — Creator (duration)](URL)` from the search output only. End with a Sources section.
 
-## If `bx`, MCP, `curl`, or the API key is unavailable
+## If `bx`, `curl`, or the API key is unavailable
 
 1. Prefer `bx` when it is on PATH (`bx videos "$ARGUMENTS"`).
-2. If `bx` is missing, use `brave_video_search` when the MCP server is connected.
-3. Otherwise use this skill's `curl` call with `BRAVE_API_KEY`.
-4. If none of those can authenticate, **stop**. Tell the user to run
-   `/bx-setup` (Configure for MCP, `/bx-set-key` for the CLI). See
+2. If `bx` is missing, use this skill's `curl` call with `BRAVE_API_KEY`.
+3. If neither can authenticate, **stop**. Tell the user to run
+   `/bx-setup` (then `/bx-set-key` if the CLI is installed). See
    [`docs/api-key-setup.md`](../../docs/api-key-setup.md).

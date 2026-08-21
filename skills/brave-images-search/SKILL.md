@@ -1,6 +1,6 @@
 ---
-name: images-search
-description: Returns image results with source page URL, thumbnail, and dimensions. Use when the user explicitly wants visual references — diagrams, screenshots, logos, or design inspiration.
+name: brave-images-search
+description: "Returns image results with source page URL, thumbnail, and dimensions from Brave Search. Use only when the user explicitly wants visual references — diagrams, screenshots, logos, or design inspiration. Prefer `bx images` when the CLI is on PATH."
 allowed-tools: Bash(curl:*), Bash(bx:*)
 compatibility: Requires `curl`, a Brave Search API key (`BRAVE_API_KEY`), and network access to api.search.brave.com.
 ---
@@ -9,9 +9,11 @@ compatibility: Requires `curl`, a Brave Search API key (`BRAVE_API_KEY`), and ne
 
 Find images for: $ARGUMENTS
 
+If `$ARGUMENTS` is empty, use the user's query.
+
 ## When to pick this skill
 
-Image search is niche for a coding agent. Reach for it only when the user explicitly wants visual references — diagrams, screenshots, logos, design inspiration. For questions where a description suffices, use `llm-context`.
+Image search is niche for a coding agent. Reach for it only when the user explicitly wants visual references — diagrams, screenshots, logos, design inspiration. For questions where a description suffices, use `brave-llm-context`.
 
 ## Canonical call
 
@@ -57,11 +59,10 @@ Pull `results[].url` (the page that hosts the image — this is what you cite) a
 
 Always cite the source page (`results[].url`) as `[Title](URL)`, not just the image URL. Only cite URLs from the search output; end with a Sources section.
 
-## If `bx`, MCP, `curl`, or the API key is unavailable
+## If `bx`, `curl`, or the API key is unavailable
 
 1. Prefer `bx` when it is on PATH (`bx images "$ARGUMENTS"`).
-2. If `bx` is missing, use `brave_image_search` when the MCP server is connected.
-3. Otherwise use this skill's `curl` call with `BRAVE_API_KEY`.
-4. If none of those can authenticate, **stop**. Tell the user to run
-   `/bx-setup` (Configure for MCP, `/bx-set-key` for the CLI). See
+2. If `bx` is missing, use this skill's `curl` call with `BRAVE_API_KEY`.
+3. If neither can authenticate, **stop**. Tell the user to run
+   `/bx-setup` (then `/bx-set-key` if the CLI is installed). See
    [`docs/api-key-setup.md`](../../docs/api-key-setup.md).

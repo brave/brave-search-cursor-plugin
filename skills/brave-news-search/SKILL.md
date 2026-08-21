@@ -1,6 +1,6 @@
 ---
-name: news-search
-description: Returns recent news articles with title, URL, description, and publication age. Supports freshness windows and Goggles. Use when the user asks for latest news, breaking stories, security advisories, or current events.
+name: brave-news-search
+description: "Returns recent news articles (title, URL, description, publication age) from Brave Search, with freshness windows and Goggles. Use when the user asks for latest news, breaking stories, security advisories, or current events. Prefer `bx news` when the CLI is on PATH."
 allowed-tools: Bash(curl:*), Bash(bx:*)
 compatibility: Requires `curl`, a Brave Search API key (`BRAVE_API_KEY`), and network access to api.search.brave.com.
 ---
@@ -8,6 +8,8 @@ compatibility: Requires `curl`, a Brave Search API key (`BRAVE_API_KEY`), and ne
 # News Search (Brave)
 
 Find recent news for: $ARGUMENTS
+
+If `$ARGUMENTS` is empty, use the user's query.
 
 ## Canonical call
 
@@ -64,11 +66,10 @@ Pull `results[]`. `age` (human-readable) and `page_age` (ISO datetime) both matt
 
 News answers should include the publication date in the citation: `[Headline](URL) (Apr 2026)`. Only cite URLs from the search output; end with a Sources section.
 
-## If `bx`, MCP, `curl`, or the API key is unavailable
+## If `bx`, `curl`, or the API key is unavailable
 
 1. Prefer `bx` when it is on PATH (`bx news "$ARGUMENTS"`).
-2. If `bx` is missing, use `brave_news_search` when the MCP server is connected.
-3. Otherwise use this skill's `curl` call with `BRAVE_API_KEY`.
-4. If none of those can authenticate, **stop**. Tell the user to run
-   `/bx-setup` (Configure for MCP, `/bx-set-key` for the CLI). See
+2. If `bx` is missing, use this skill's `curl` call with `BRAVE_API_KEY`.
+3. If neither can authenticate, **stop**. Tell the user to run
+   `/bx-setup` (then `/bx-set-key` if the CLI is installed). See
    [`docs/api-key-setup.md`](../../docs/api-key-setup.md).

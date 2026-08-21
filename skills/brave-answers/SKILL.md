@@ -1,6 +1,6 @@
 ---
-name: answers
-description: Synthesizes a cited answer via Brave's OpenAI-compatible chat completions. Single-search is fast; enable_research runs multi-search deep research. Use when the user wants a finished explanation, comparison, or researched report rather than raw sources.
+name: brave-answers
+description: "Synthesizes a cited answer from Brave's OpenAI-compatible chat completions. Single-search is fast; enable_research runs multi-search deep research. Use when the user wants a finished explanation, comparison, or researched report rather than raw sources. Prefer `bx answers` when the CLI is on PATH."
 allowed-tools: Bash(curl:*), Bash(bx:*), Bash(jq:*)
 compatibility: Requires `curl`, a Brave Search API key (`BRAVE_API_KEY`) on the Answers plan, and network access to api.search.brave.com.
 ---
@@ -9,9 +9,11 @@ compatibility: Requires `curl`, a Brave Search API key (`BRAVE_API_KEY`) on the 
 
 Synthesize an answer with citations for: $ARGUMENTS
 
+If `$ARGUMENTS` is empty, use the user's query.
+
 ## When to pick this skill
 
-Use when the user wants a finished answer, not raw context for the agent to reason over. For RAG/grounding prefer `llm-context`. For raw ranked hits use `bx web` or MCP `brave_web_search`. If `bx` is on PATH, `bx answers "$ARGUMENTS"` calls this same endpoint with simpler flags.
+Use when the user wants a finished answer, not raw context for the agent to reason over. For RAG/grounding prefer `brave-llm-context`. For raw ranked hits use `bx web`. If `bx` is on PATH, `bx answers "$ARGUMENTS"` calls this same endpoint with simpler flags.
 
 ## Two modes
 
@@ -89,9 +91,9 @@ Single-search: surface inline citations from the response. Research: the `<answe
 
 ## If `bx`, `curl`, or the API key is unavailable
 
-Answers and deep research are **not** on MCP. Prefer `bx` when it is on PATH
-(`bx answers "$ARGUMENTS"`). If `bx` is missing, use this skill's `curl` call
-with `BRAVE_API_KEY` on the Answers plan.
+Prefer `bx` when it is on PATH (`bx answers "$ARGUMENTS"`). If `bx` is
+missing, use this skill's `curl` call with `BRAVE_API_KEY` on the Answers
+plan.
 
 If there is no working API key either, **stop**. Tell the user to run
 `/bx-setup` (see [`docs/api-key-setup.md`](../../docs/api-key-setup.md)).

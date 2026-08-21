@@ -5,7 +5,7 @@ description: "Search for an error message, stack trace, or build failure via `bx
 
 # Debug Search (Brave)
 
-Use the **bx** skill (or the **llm-context** skill) to ground a fix for:
+Use the **bx** skill (or the **brave-llm-context** skill) to ground a fix for:
 $ARGUMENTS
 
 ## Pre-process the query
@@ -38,5 +38,5 @@ Pull `.grounding.generic[]` snippets, identify the common root cause across
 sources, propose a concrete code change, and cite the URLs you used.
 
 Follow the skill instructions exactly, including citation standards and the
-fallback contract: try `bx`, then Brave Search MCP tools if connected, then
-the matching curl skill, then stop and point the user at `/bx-setup`.
+fallback contract: try `bx`, then the matching curl skill, then stop and
+point the user at `/bx-setup`.

@@ -237,6 +237,19 @@ async function validateComponentDirs(repoRoot) {
     for (const f of await walkFiles(skillsDir)) {
       if (path.basename(f) === "SKILL.md") {
         await validateFrontmatterFile(repoRoot, f, "skill", ["name", "description"]);
+        const content = await fs.readFile(f, "utf8");
+        const parsed = parseFrontmatter(content, path.relative(repoRoot, f));
+        const dirName = path.basename(path.dirname(f));
+        if (parsed?.name && parsed.name !== dirName) {
+          addError(
+            `skill name "${parsed.name}" does not match directory "${dirName}" (${path.relative(repoRoot, f)}).`
+          );
+        }
+        if (parsed?.description && parsed.description.length > 1024) {
+          addError(
+            `skill description exceeds 1024 characters in ${path.relative(repoRoot, f)}.`
+          );
+        }
       }
     }
   }
@@ -257,6 +270,14 @@ async function validateComponentDirs(repoRoot) {
       const ext = path.extname(f).toLowerCase();
       if ([".md", ".mdc", ".markdown", ".txt"].includes(ext)) {
         await validateFrontmatterFile(repoRoot, f, "command", ["name", "description"]);
+        const content = await fs.readFile(f, "utf8");
+        const parsed = parseFrontmatter(content, path.relative(repoRoot, f));
+        const expected = path.basename(f, path.extname(f));
+        if (parsed?.name && parsed.name !== expected) {
+          addError(
+            `command name "${parsed.name}" does not match filename "${expected}" (${path.relative(repoRoot, f)}).`
+          );
+        }
       }
     }
   }
@@ -297,6 +318,28 @@ async function main() {
     addError(
       'Plugin "name" must be lowercase and use only alphanumerics, hyphens, and periods, starting and ending with an alphanumeric.'
     );
+  }
+
+  if (typeof manifest.description !== "string" || manifest.description.trim().length === 0) {
+    addError('Plugin "description" is required for marketplace listing.');
+  }
+  if (typeof manifest.version !== "string" || !/^\d+\.\d+\.\d+/.test(manifest.version)) {
+    addError('Plugin "version" must be a semver string (e.g. "1.0.0").');
+  }
+  if (!manifest.author || typeof manifest.author.name !== "string" || manifest.author.name.length === 0) {
+    addError('Plugin "author.name" is required.');
+  }
+  if (typeof manifest.license !== "string" || manifest.license.length === 0) {
+    addError('Plugin "license" is required (marketplace plugins must be open source).');
+  }
+  if (!(await pathExists(path.join(repoRoot, "README.md")))) {
+    addError("README.md is missing (required by the marketplace submission checklist).");
+  }
+  if (!(await pathExists(path.join(repoRoot, "LICENSE")))) {
+    addWarning("LICENSE file is missing; marketplace plugins must be open source.");
+  }
+  if (!(await pathExists(path.join(repoRoot, "CHANGELOG.md")))) {
+    addWarning("CHANGELOG.md is missing (recommended for marketplace updates).");
   }
 
   const fields = ["logo", "rules", "skills", "agents", "commands", "hooks", "mcpServers"];

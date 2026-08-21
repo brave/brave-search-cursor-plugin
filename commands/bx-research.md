@@ -5,7 +5,7 @@ description: "Deep multi-search research via `bx answers --enable-research`. Ite
 
 # Deep Research (Brave)
 
-Use the **answers** skill (or the **bx** skill) to run deep research on:
+Use the **brave-answers** skill (or the **bx** skill) to run deep research on:
 $ARGUMENTS
 
 ## Step 1: Pick a filename
@@ -50,6 +50,6 @@ Do **not** pass `--no-stream` here. Blocking mode returns
 Share an executive summary plus the full file path so the user can re-read
 it. Do NOT paste the entire NDJSON back into chat.
 
-Follow the answers/bx skill instructions exactly, including citation
-standards and the fallback contract: try `bx`, then the matching curl skill
-(Answers is not on MCP), then stop and point the user at `/bx-setup`.
+Follow the brave-answers/bx skill instructions exactly, including citation
+standards and the fallback contract: try `bx`, then the matching curl skill,
+then stop and point the user at `/bx-setup`.

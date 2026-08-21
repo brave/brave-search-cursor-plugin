@@ -9,9 +9,7 @@ Configure the Brave Search API key the `bx` CLI uses for authentication. Sets
 the key without exposing it in shell history or process listings.
 
 Skip this command if `BRAVE_API_KEY` is already set in the environment —
-`bx` reads that name directly. This writes the `bx` config file; it does
-**not** fill plugin **Configure**. If MCP tools are missing or red, the user
-still needs **Customize → Plugins → Brave Search API → Configure**.
+`bx` reads that name directly. This writes the `bx` config file.
 
 ## Steps
 
