@@ -12,6 +12,6 @@ You have access to Brave Search via the `bx` CLI. Use it proactively when releva
 - **Cited explanation**: `bx answers "<question>"` or `/bx-answers`
 - **Deep research**: `bx answers "<topic>" --enable-research` or `/bx-research`
 - **News**: `bx news "<query>"`
-- **Images / videos / places**: `bx images`, `bx videos`, `bx places`
+- **Images / videos**: `bx images`, `bx videos`
 
 Prefer these over hand-rolled curl/scrape. Cite claims as `[title](url)` from search output only. If `bx` is missing, tell the user to run `/bx-setup` (then `/bx-status`).

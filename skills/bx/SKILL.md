@@ -1,6 +1,6 @@
 ---
 name: bx
-description: "DEFAULT for live web lookups. Searches Brave's independent index via the bx CLI — token-budgeted RAG, cited answers, deep research, news, images, videos, places, and Goggles ranking. Use when the user asks to search, look up, browse, ground, fact-check, find docs, research a topic, or needs current information beyond training data. Do not trigger for local files, git, or code edits that need no live web data."
+description: "DEFAULT for live web lookups. Searches Brave's independent index via the bx CLI — token-budgeted RAG, cited answers, deep research, news, images, videos, and Goggles ranking. Use when the user asks to search, look up, browse, ground, fact-check, find docs, research a topic, or needs current information beyond training data. Do not trigger for local files, git, or code edits that need no live web data."
 allowed-tools: Bash(bx:*)
 compatibility: Requires the `bx` CLI on PATH and network access to api.search.brave.com.
 ---
@@ -29,61 +29,71 @@ bx "your search query"
 
 ## When to Use Which Command
 
-| Your need | Command | Why |
-|--|--|--|
-| Look up docs, errors, code patterns | `bx "query"` | Pre-extracted text, token-budgeted (default) |
-| Get a synthesized explanation | `bx answers "query"` | AI-generated, cites sources, streams |
-| Deep research on complex topics | `bx answers "query" --enable-research` | Multi-search iterative research |
-| Traditional search results | `bx web "query"` | All result types (web, news, discussions, etc.) |
-| Find discussions/forums | `bx web "query" --result-filter discussions` | Forums often have solutions |
-| Latest news / recent events | `bx news "query" --freshness pd` | Fresh info beyond training data |
-| Find images | `bx images "query"` | Up to 200 results |
-| Find videos | `bx videos "query"` | Duration, views, creator |
-| Local businesses / places | `bx places "coffee" --location "San Francisco"` | 200M+ POIs |
-| Boost/filter specific domains | `bx "query" --include-site docs.rs` | Or use `--goggles` for full control |
+| Your need                           | Command                                      | Why                                             |
+| ----------------------------------- | -------------------------------------------- | ----------------------------------------------- |
+| Look up docs, errors, code patterns | `bx "query"`                                 | Pre-extracted text, token-budgeted (default)    |
+| Get a synthesized explanation       | `bx answers "query"`                         | AI-generated, cites sources, streams            |
+| Deep research on complex topics     | `bx answers "query" --enable-research`       | Multi-search iterative research                 |
+| Traditional search results          | `bx web "query"`                             | All result types (web, news, discussions, etc.) |
+| Find discussions/forums             | `bx web "query" --result-filter discussions` | Forums often have solutions                     |
+| Latest news / recent events         | `bx news "query" --freshness pd`             | Fresh info beyond training data                 |
+| Find images                         | `bx images "query"`                          | Up to 200 results                               |
+| Find videos                         | `bx videos "query"`                          | Duration, views, creator                        |
+| Boost/filter specific domains       | `bx "query" --include-site docs.rs`          | Or use `--goggles` for full control             |
 
 ## Commands
 
-| Command | Description | Output path |
-|--|--|--|
-| `context` | **Default.** RAG/LLM grounding — pre-extracted web content | `.grounding.generic[]` -> `{url, title, snippets[]}` |
-| `answers` | AI answers — OpenAI-compatible, streaming by default | `.choices[0].delta.content` (stream) |
-| `web` | Web search — all result types | `.web.results[]`, `.news.results[]`, etc. |
-| `news` | News articles with freshness filters | `.results[]` -> `{title, url, age}` |
-| `images` | Image search (up to 200 results) | `.results[]` -> `{title, url, thumbnail.src}` |
-| `videos` | Video search with duration/views | `.results[]` -> `{title, url, video.duration}` |
-| `places` | Local place/POI search (200M+ POIs) | `.results[]` -> `{title, postal_address}` |
-| `suggest` | Autocomplete/query suggestions | `.results[]` -> `{query}` |
-| `spellcheck` | Spell-check a query | `.results[0].query` |
-| `config` | Manage API key and settings | `set-key`, `show-key`, `path`, `show` |
+| Command      | Description                                                | Output path                                          |
+| ------------ | ---------------------------------------------------------- | ---------------------------------------------------- |
+| `context`    | **Default.** RAG/LLM grounding — pre-extracted web content | `.grounding.generic[]` -> `{url, title, snippets[]}` |
+| `answers`    | AI answers — OpenAI-compatible, streaming by default       | `.choices[0].delta.content` (stream)                 |
+| `web`        | Web search — all result types                              | `.web.results[]`, `.news.results[]`, etc.            |
+| `news`       | News articles with freshness filters                       | `.results[]` -> `{title, url, age}`                  |
+| `images`     | Image search (up to 200 results)                           | `.results[]` -> `{title, url, thumbnail.src}`        |
+| `videos`     | Video search with duration/views                           | `.results[]` -> `{title, url, video.duration}`       |
+| `suggest`    | Autocomplete/query suggestions                             | `.results[]` -> `{query}`                            |
+| `spellcheck` | Spell-check a query                                        | `.results[0].query`                                  |
+| `config`     | Manage API key and settings                                | `set-key`, `show-key`, `path`, `show`                |
 
 ## Response Shapes
 
 **`bx "query"`** (context — default, recommended)
+
 ```json
 {
   "grounding": {
     "generic": [
-      { "url": "...", "title": "...", "snippets": ["extracted content...", "..."] }
+      {
+        "url": "...",
+        "title": "...",
+        "snippets": ["extracted content...", "..."]
+      }
     ]
   },
   "sources": {
-    "https://example.com": { "title": "...", "hostname": "...", "age": ["...", "2025-01-15", "392 days ago"] }
+    "https://example.com": {
+      "title": "...",
+      "hostname": "...",
+      "age": ["...", "2025-01-15", "392 days ago"]
+    }
   }
 }
 ```
 
 **`bx answers "query" --no-stream`** (single JSON response)
+
 ```json
-{"choices": [{"message": {"content": "Full answer text..."}}]}
+{ "choices": [{ "message": { "content": "Full answer text..." } }] }
 ```
 
 **`bx answers "query"`** (streaming — default, one JSON chunk per line)
+
 ```json
-{"choices": [{"delta": {"content": "chunk"}}]}
+{ "choices": [{ "delta": { "content": "chunk" } }] }
 ```
 
 **`bx web "query"`** (full search results)
+
 ```json
 {
   "web": { "results": [{"title": "...", "url": "...", "description": "..."}] },
@@ -97,14 +107,14 @@ bx "your search query"
 
 Control output size for context (the default command):
 
-| Flag | Short alias | Default | Description |
-|--|--|--|--|
-| `--maximum-number-of-tokens` | `--max-tokens` | 8192 | Approximate total tokens (1024-32768) |
-| `--maximum-number-of-tokens-per-url` | `--max-tokens-per-url` | 4096 | Max tokens per URL (512-8192) |
-| `--maximum-number-of-urls` | `--max-urls` | 20 | Max URLs in response (1-50) |
-| `--maximum-number-of-snippets` | `--max-snippets` | 50 | Max snippets across all URLs |
-| `--maximum-number-of-snippets-per-url` | `--max-snippets-per-url` | — | Max snippets per URL |
-| `--context-threshold-mode` | `--threshold` | balanced | Relevance: `strict`, `balanced`, `lenient` |
+| Flag                                   | Short alias              | Default  | Description                                |
+| -------------------------------------- | ------------------------ | -------- | ------------------------------------------ |
+| `--maximum-number-of-tokens`           | `--max-tokens`           | 8192     | Approximate total tokens (1024-32768)      |
+| `--maximum-number-of-tokens-per-url`   | `--max-tokens-per-url`   | 4096     | Max tokens per URL (512-8192)              |
+| `--maximum-number-of-urls`             | `--max-urls`             | 20       | Max URLs in response (1-50)                |
+| `--maximum-number-of-snippets`         | `--max-snippets`         | 50       | Max snippets across all URLs               |
+| `--maximum-number-of-snippets-per-url` | `--max-snippets-per-url` | —        | Max snippets per URL                       |
+| `--context-threshold-mode`             | `--threshold`            | balanced | Relevance: `strict`, `balanced`, `lenient` |
 
 ```bash
 bx "topic" --max-tokens 4096 --max-tokens-per-url 1024 --max-urls 5 --threshold strict
@@ -145,13 +155,13 @@ $boost,site=peps.python.org'
 
 ### DSL Quick Reference
 
-| Rule | Effect | Example |
-|--|--|--|
-| `$boost=N,site=DOMAIN` | Promote domain (N=1-10) | `$boost=3,site=docs.rs` |
-| `$downrank=N,site=DOMAIN` | Demote domain (N=1-10) | `$downrank=5,site=example.com` |
-| `$discard,site=DOMAIN` | Remove domain entirely | `$discard,site=example.com` |
-| `/path/$boost=N` | Boost matching URL paths | `/docs/$boost=5` |
-| Generic `$discard` | Allowlist mode — discard unmatched | `$discard` (as first rule) |
+| Rule                      | Effect                             | Example                        |
+| ------------------------- | ---------------------------------- | ------------------------------ |
+| `$boost=N,site=DOMAIN`    | Promote domain (N=1-10)            | `$boost=3,site=docs.rs`        |
+| `$downrank=N,site=DOMAIN` | Demote domain (N=1-10)             | `$downrank=5,site=example.com` |
+| `$discard,site=DOMAIN`    | Remove domain entirely             | `$discard,site=example.com`    |
+| `/path/$boost=N`          | Boost matching URL paths           | `/docs/$boost=5`               |
+| Generic `$discard`        | Allowlist mode — discard unmatched | `$discard` (as first rule)     |
 
 Separate rules with newlines. Full DSL: [goggles-quickstart](https://github.com/brave/goggles-quickstart).
 
@@ -168,11 +178,13 @@ Use `@/path/to/file` to reuse a goggle across queries.
 ## Agent Workflow Examples
 
 **Debugging an error:**
+
 ```bash
 bx "Python TypeError cannot unpack non-iterable NoneType" --max-tokens 4096
 ```
 
 **Corrective RAG loop:**
+
 ```bash
 # 1. Broad search
 bx "axum middleware authentication" --max-tokens 4096
@@ -183,31 +195,34 @@ bx answers "how to implement JWT auth middleware in axum" --enable-research
 ```
 
 **Checking for breaking changes before upgrading:**
+
 ```bash
 bx "Next.js 15 breaking changes migration guide" --max-tokens 8192
 bx news "Next.js 15 release" --freshness pm
 ```
 
 **Non-streaming answers for programmatic use:**
+
 ```bash
 bx answers "compare SQLx and Diesel for Rust" --no-stream
 ```
 
 **Answers via stdin (OpenAI-compatible JSON body):**
+
 ```bash
 echo '{"messages":[{"role":"user","content":"what are the OWASP top 10 vulnerabilities for web APIs"}]}' | bx answers -
 ```
 
 ## Exit Codes
 
-| Code | Meaning | Agent action |
-|--|--|--|
-| 0 | Success | Process results |
-| 1 | Client error (bad request) | Fix query/parameters |
-| 2 | Usage error (bad flags) | Fix CLI arguments |
-| 3 | Auth/permission error (401/403) | Have the user re-run `bx config set-key` — do **not** call `bx config show-key`, its stdout is the plaintext key |
-| 4 | Rate limited (429) | Retry after delay |
-| 5 | Server/network error | Retry with backoff |
+| Code | Meaning                         | Agent action                                                                                                     |
+| ---- | ------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| 0    | Success                         | Process results                                                                                                  |
+| 1    | Client error (bad request)      | Fix query/parameters                                                                                             |
+| 2    | Usage error (bad flags)         | Fix CLI arguments                                                                                                |
+| 3    | Auth/permission error (401/403) | Have the user re-run `bx config set-key` — do **not** call `bx config show-key`, its stdout is the plaintext key |
+| 4    | Rate limited (429)              | Retry after delay                                                                                                |
+| 5    | Server/network error            | Retry with backoff                                                                                               |
 
 ## Use Cases
 
@@ -217,7 +232,6 @@ echo '{"messages":[{"role":"user","content":"what are the OWASP top 10 vulnerabi
 - **Research**: Deep multi-source research with `bx answers "topic" --enable-research`
 - **Debugging**: Search for error messages and stack traces directly
 - **News monitoring**: Track topics with `bx news "query" --freshness pd`
-- **Local search**: Find businesses and places with `bx places "query" --location "city"`
 
 ## Notes
 
