@@ -2,13 +2,18 @@
 # install.sh — install the Brave Search plugin for Cursor (local development)
 #
 # Usage:
-#   bash install.sh                # symlink into ~/.cursor/plugins/local
+#   bash install.sh                # copy into ~/.cursor/plugins/local
 #   bash install.sh --with-claude  # also register in Claude Code's plugin files
-#   bash install.sh --uninstall    # remove the Cursor symlink (and Claude
+#   bash install.sh --symlink      # symlink instead of copy (often ignored by Cursor)
+#   bash install.sh --uninstall    # remove the local Cursor install (and Claude
 #                                  # registration if present)
 #
 # Default is Cursor-only. --with-claude writes ~/.claude/plugins/installed_plugins.json
 # and ~/.claude/settings.json so the same checkout can load in Claude Code.
+#
+# Cursor currently rejects local-plugin symlinks whose target is outside
+# ~/.cursor/plugins/local, so the default is a real copy. Re-run this script
+# after you edit the checkout, then reload Cursor.
 #
 # This is the local-development install. The marketplace install (after
 # submission) doesn't need any of this — Cursor handles registration itself.
@@ -28,16 +33,24 @@ CLAUDE_SETTINGS="${CLAUDE_DIR}/settings.json"
 
 usage() {
   cat <<'EOF'
-Usage: bash install.sh [--with-claude] [--uninstall|-u] [--help|-h]
+Usage: bash install.sh [--with-claude] [--symlink] [--uninstall|-u] [--help|-h]
 
-  (no flags)       Symlink this repo into ~/.cursor/plugins/local for Cursor.
+  (no flags)       Copy this repo into ~/.cursor/plugins/local for Cursor.
+  --symlink        Symlink instead of copy. Current Cursor builds often
+                   ignore symlinks that point outside ~/.cursor/plugins/local
+                   — use this only if a copy is working and you want live
+                   iteration on a build that allows it.
   --with-claude    Also register/enable the plugin in Claude Code
                    (~/.claude/plugins/installed_plugins.json and
                    ~/.claude/settings.json).
-  --uninstall, -u  Remove the Cursor symlink. Also drops a leftover Claude
-                   Code registration if those files exist.
+  --uninstall, -u  Remove the Cursor copy or symlink. Also drops a leftover
+                   Claude Code registration if those files exist.
   --help, -h       Show this help.
 EOF
+}
+
+canonical_path() {
+  (cd "$1" && pwd -P)
 }
 
 require_python3() {
@@ -131,13 +144,28 @@ register_claude() {
   echo "Enabled ${PLUGIN_ID} in ${CLAUDE_SETTINGS}"
 }
 
+looks_like_our_plugin() {
+  local manifest="$1/.cursor-plugin/plugin.json"
+  [ -f "$manifest" ] || return 1
+  grep -q '"name"[[:space:]]*:[[:space:]]*"brave-search-api"' "$manifest"
+}
+
 uninstall() {
   if [ -L "$PLUGIN_DIR" ]; then
     rm "$PLUGIN_DIR"
     echo "Removed symlink ${PLUGIN_DIR}"
   elif [ -d "$PLUGIN_DIR" ]; then
-    echo "warning: ${PLUGIN_DIR} is a real directory, not a symlink — leaving it."
-    echo "         delete it manually if you want it gone."
+    if [ "$(canonical_path "$PLUGIN_DIR")" = "$(canonical_path "$SCRIPT_DIR")" ]; then
+      echo "warning: ${PLUGIN_DIR} is this checkout — leaving it in place."
+      echo "         the plugin is installed by living at the local-plugins path;"
+      echo "         move or delete the repo yourself if you want it gone."
+    elif looks_like_our_plugin "$PLUGIN_DIR"; then
+      rm -rf "$PLUGIN_DIR"
+      echo "Removed copy ${PLUGIN_DIR}"
+    else
+      echo "warning: ${PLUGIN_DIR} exists but does not look like this plugin — leaving it."
+      echo "         delete it manually if you want it gone."
+    fi
   elif [ -e "$PLUGIN_DIR" ]; then
     echo "warning: ${PLUGIN_DIR} exists but is not a symlink or directory — leaving it."
   else
@@ -150,26 +178,72 @@ uninstall() {
   echo "Reload Cursor (Cmd/Ctrl+Shift+P → Developer: Reload Window) to apply."
 }
 
+copy_plugin_files() {
+  mkdir -p "$PLUGIN_DIR"
+  if command -v rsync >/dev/null 2>&1; then
+    rsync -a --delete --exclude '.git/' "$SCRIPT_DIR/" "$PLUGIN_DIR/"
+    return
+  fi
+
+  local tmp
+  tmp="$(mktemp -d "${PLUGIN_DIR}.tmp.XXXXXX")"
+  tar -C "$SCRIPT_DIR" --exclude=.git -cf - . | tar -C "$tmp" -xf -
+  rm -rf "$PLUGIN_DIR"
+  mv "$tmp" "$PLUGIN_DIR"
+}
+
 install_cursor() {
   mkdir -p "$(dirname "$PLUGIN_DIR")"
+
+  if [ -e "$PLUGIN_DIR" ] && [ ! -L "$PLUGIN_DIR" ] && [ ! -d "$PLUGIN_DIR" ]; then
+    echo "error: ${PLUGIN_DIR} exists and is not a directory or symlink — refusing to overwrite." >&2
+    exit 1
+  fi
+
+  if [ -d "$PLUGIN_DIR" ] && [ ! -L "$PLUGIN_DIR" ] && \
+     [ "$(canonical_path "$PLUGIN_DIR")" = "$(canonical_path "$SCRIPT_DIR")" ]; then
+    echo "Checkout is already at ${PLUGIN_DIR} — nothing to copy."
+    return
+  fi
+
+  if [ "$USE_SYMLINK" -eq 1 ]; then
+    if [ -L "$PLUGIN_DIR" ] || [ -d "$PLUGIN_DIR" ]; then
+      if [ -d "$PLUGIN_DIR" ] && [ ! -L "$PLUGIN_DIR" ] && ! looks_like_our_plugin "$PLUGIN_DIR"; then
+        echo "error: ${PLUGIN_DIR} exists and does not look like this plugin — refusing to overwrite." >&2
+        exit 1
+      fi
+      rm -rf "$PLUGIN_DIR"
+    fi
+    ln -s "$SCRIPT_DIR" "$PLUGIN_DIR"
+    echo "Symlinked ${SCRIPT_DIR} → ${PLUGIN_DIR}"
+    echo "warning: current Cursor builds often ignore symlinks whose target is"
+    echo "         outside ~/.cursor/plugins/local. If the plugin does not appear"
+    echo "         after a reload, re-run: bash install.sh"
+    return
+  fi
+
   if [ -L "$PLUGIN_DIR" ]; then
     rm "$PLUGIN_DIR"
-  elif [ -e "$PLUGIN_DIR" ]; then
-    echo "error: ${PLUGIN_DIR} exists and is not a symlink — refusing to overwrite." >&2
+  elif [ -d "$PLUGIN_DIR" ] && ! looks_like_our_plugin "$PLUGIN_DIR"; then
+    echo "error: ${PLUGIN_DIR} exists and does not look like this plugin — refusing to overwrite." >&2
     echo "       remove it manually if you want to replace it." >&2
     exit 1
   fi
-  ln -s "$SCRIPT_DIR" "$PLUGIN_DIR"
-  echo "Symlinked ${SCRIPT_DIR} → ${PLUGIN_DIR}"
+
+  copy_plugin_files
+  echo "Copied ${SCRIPT_DIR} → ${PLUGIN_DIR}"
+  echo "This is a copy, not a live link. Re-run bash install.sh after editing the plugin."
 }
 
 ACTION="install"
 WITH_CLAUDE=0
+USE_SYMLINK=0
 
 for arg in "$@"; do
   case "$arg" in
     --uninstall|-u) ACTION="uninstall" ;;
     --with-claude) WITH_CLAUDE=1 ;;
+    --symlink) USE_SYMLINK=1 ;;
     --help|-h) usage; exit 0 ;;
     *)
       echo "error: unknown argument ${arg}" >&2
@@ -196,6 +270,9 @@ echo "  2. The plugin should appear under Customize → Plugins."
 echo "  3. Skills appear under Customize → Skills; /bx-* commands in the slash menu."
 echo "  4. Run /bx-setup (install bx and set the CLI key)."
 echo "  5. Run /bx-status to verify."
+if [ "$USE_SYMLINK" -eq 0 ]; then
+  echo "  6. After editing this checkout, re-run bash install.sh and reload again."
+fi
 if [ "$WITH_CLAUDE" -eq 0 ]; then
   echo ""
   echo "Cursor-only install. To also register in Claude Code: bash install.sh --with-claude"

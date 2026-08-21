@@ -67,19 +67,23 @@ Open Cursor → Customize → Plugins (or the marketplace panel) → search
 ### Local development
 
 ```bash
-bash install.sh                 # symlink into ~/.cursor/plugins/local
+bash install.sh                 # copy into ~/.cursor/plugins/local
 bash install.sh --with-claude   # also register in Claude Code
-# ...edit code, then in Cursor: Cmd/Ctrl+Shift+P → Developer: Reload Window
+bash install.sh --symlink       # symlink instead (often ignored by Cursor)
+# ...edit code, re-run install.sh, then: Cmd/Ctrl+Shift+P → Developer: Reload Window
 bash install.sh --uninstall     # tear down
 ```
 
-Default is Cursor-only: the script symlinks this checkout into
-`~/.cursor/plugins/local/brave-search-api` for live iteration. Pass
+Default is Cursor-only: the script **copies** this checkout into
+`~/.cursor/plugins/local/brave-search-api`. Cursor currently rejects
+local-plugin symlinks whose target is outside that directory, so a copy is
+what actually loads. Re-run `install.sh` after you edit the plugin, then
+reload. `--symlink` is opt-in for builds that allow live iteration. Pass
 `--with-claude` to also register `brave-search-api@local` in
 `~/.claude/plugins/installed_plugins.json` and enable it in
-`~/.claude/settings.json`. If your Cursor build doesn't pick the plugin up
-after a reload, check the [Cursor plugins reference](https://cursor.com/docs/reference/plugins)
-for the current local-dev path.
+`~/.claude/settings.json`. If the plugin still does not appear after a
+reload, confirm the copy exists at that path and see the
+[Cursor plugins reference](https://cursor.com/docs/reference/plugins).
 
 After install, reload Cursor and verify in chat that the `bx` skill and
 `/bx-search` command are visible. Validate the manifest before submission:
