@@ -125,6 +125,55 @@ function isSafeRelativePath(value) {
   return !normalized.startsWith("../") && normalized !== "..";
 }
 
+function collectPlaceholderNames(value, out = new Set()) {
+  if (typeof value === "string") {
+    for (const match of value.matchAll(/\$\{([A-Z][A-Z0-9_]*)\}/g)) {
+      out.add(match[1]);
+    }
+    return out;
+  }
+  if (Array.isArray(value)) {
+    for (const item of value) collectPlaceholderNames(item, out);
+    return out;
+  }
+  if (value && typeof value === "object") {
+    for (const item of Object.values(value)) collectPlaceholderNames(item, out);
+  }
+  return out;
+}
+
+const builtInPlaceholders = new Set(["PLUGIN_ROOT"]);
+
+async function validateMcpVariables(repoRoot, manifest) {
+  let mcpConfig = null;
+  if (typeof manifest.mcpServers === "string") {
+    const mcpPath = path.resolve(repoRoot, manifest.mcpServers);
+    mcpConfig = await readJsonFile(mcpPath, "MCP config");
+  } else if (manifest.mcpServers && typeof manifest.mcpServers === "object") {
+    mcpConfig = manifest.mcpServers;
+  } else {
+    const defaultPath = path.join(repoRoot, "mcp.json");
+    if (await pathExists(defaultPath)) {
+      mcpConfig = await readJsonFile(defaultPath, "MCP config");
+    }
+  }
+  if (!mcpConfig) return;
+
+  const used = [...collectPlaceholderNames(mcpConfig)].filter(
+    (name) => !builtInPlaceholders.has(name)
+  );
+  const declared = new Set(
+    Object.keys(manifest.variables?.properties ?? {})
+  );
+  for (const name of used) {
+    if (!declared.has(name)) {
+      addError(
+        `mcp.json uses \${${name}} but .cursor-plugin/plugin.json variables.properties does not declare it.`
+      );
+    }
+  }
+}
+
 function extractPathValues(value) {
   if (typeof value === "string") return [value];
   if (Array.isArray(value)) return value.flatMap(extractPathValues);
@@ -259,6 +308,7 @@ async function main() {
   }
 
   await validateComponentDirs(repoRoot);
+  await validateMcpVariables(repoRoot, manifest);
 
   const skillsDir = path.join(repoRoot, "skills");
   if (await pathExists(skillsDir)) {

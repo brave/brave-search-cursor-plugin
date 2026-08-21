@@ -15,5 +15,6 @@ If the request reads like a deep-research topic (multi-source comparison,
 "what changed over the last year", etc.), tell the user about `/bx-research`
 instead — it explores many more sources but takes ~5 minutes.
 
-Follow the skill instructions exactly, including its citation standards and
-"stop if `bx` / API key is unavailable" guardrail.
+Follow the skill instructions exactly, including citation standards and the
+fallback contract: try `bx`, then the matching curl skill (Answers is not on
+MCP), then stop and point the user at `/bx-setup`.

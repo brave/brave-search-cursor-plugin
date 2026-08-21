@@ -1,9 +1,10 @@
 # Brave Search — Cursor plugin
 
-Brave Search skills and `bx` CLI commands for the [Cursor](https://cursor.com)
-AI agent: token-budgeted web grounding, AI-synthesized answers, deep research,
-news, images, and videos — all through Brave's
-[independent web index](https://brave.com/search/api/).
+Brave Search skills, `bx` CLI commands, and the official
+[Brave Search MCP server](https://github.com/brave/brave-search-mcp-server)
+for the [Cursor](https://cursor.com) AI agent: token-budgeted web grounding,
+AI-synthesized answers, deep research, news, images, and videos — all through
+Brave's [independent web index](https://brave.com/search/api/).
 
 ## Features
 
@@ -13,24 +14,26 @@ news, images, and videos — all through Brave's
 | **RAG / LLM grounding**          | `llm-context`   | (covered by `/bx-search`)                                            |
 | **AI answers (single-shot)**     | `answers`       | `/bx-answers`                                                        |
 | **Deep research**                | `answers`       | `/bx-research`                                                       |
-| **Web search**                   | `web-search`    | (covered by `/bx-search`)                                            |
 | **News**                         | `news-search`   | `/bx-news`                                                           |
 | **Images**                       | `images-search` | —                                                                    |
 | **Videos**                       | `videos-search` | —                                                                    |
-| **Setup**                        | —               | `/bx-install`, `/bx-set-key`                                         |
+| **Setup**                        | —               | `/bx-setup` (then `/bx-install`, `/bx-set-key`)                      |
+| **MCP tools**                    | —               | Cursor starts `@brave/brave-search-mcp-server` (stdio via `npx`)     |
 
-Plus a single rule (`rules/prefer-bx-for-web-search.mdc`) that nudges the agent
-to use `bx`/Brave Search for web lookups and enforces citation standards.
+Plus a short always-on rule (`rules/prefer-bx-for-web-search.mdc`) that
+nudges the agent toward `bx` / Brave Search MCP when a lookup needs live
+web data, without blocking other search tools.
 
 ## Prerequisites
 
 1. Get a Brave Search API key at <https://api.search.brave.com>. All plans
    include $5/month of free credits.
-2. Make the key available to Cursor — see
-   [`docs/api-key-setup.md`](docs/api-key-setup.md) for the recommended
-   `direnv` flow and shell-profile fallback.
-3. (Recommended) Install the `bx` CLI so the slash commands work — easiest
-   way is to invoke `/bx-install` from chat, or run:
+2. Run `/bx-setup` from chat. One env name, `BRAVE_API_KEY`:
+   - **Configure** → `BRAVE_API_KEY` for MCP (Node.js required; Cursor starts
+     `npx @brave/brave-search-mcp-server`).
+   - The same `BRAVE_API_KEY` in the environment (or `bx config set-key`) for
+     `/bx-*` and curl. See [`docs/api-key-setup.md`](docs/api-key-setup.md).
+3. Or install `bx` yourself, then `/bx-set-key`:
 
    ```bash
    curl -fsSL https://raw.githubusercontent.com/brave/brave-search-cli/main/scripts/install.sh | sh
@@ -44,32 +47,43 @@ to use `bx`/Brave Search for web lookups and enforces citation standards.
 
    Then `/bx-set-key` (or `bx config set-key` interactively).
 
-> The 10 raw-API skills (everything except `bx`) work without the CLI — they
+> The 5 raw-API skills (everything except `bx`) work without the CLI — they
 > teach the agent to call the Brave Search API directly with `curl`. The CLI
-> is only required for the `/bx-*` slash commands.
+> is only required for the `/bx-*` slash commands. Ranked SERP hits use
+> `bx web` or MCP `brave_web_search` (no dedicated skill).
 
 ## Install
 
 ### From the Cursor Marketplace
 
-Open Cursor → marketplace panel → search "Brave Search" → install. Skills
-appear under Settings → Rules; commands appear in the chat slash menu.
+Open Cursor → Customize → Plugins (or the marketplace panel) → search
+"Brave Search API" → install.
+
+- Skills appear under **Customize → Skills** (Agent Decides) and can be
+  invoked with `/bx`, `/llm-context`, etc.
+- Slash commands (`/bx-setup`, `/bx-search`, `/bx-answers`, …) appear in the
+  chat `/` menu.
+- The prefer-bx awareness rule is on by default; toggle it under
+  **Customize → Rules**.
+- First-run: `/bx-setup`. Configure starts MCP; `BRAVE_API_KEY` in the
+  environment (or `/bx-set-key`) starts the CLI. Answers and deep research
+  stay on `/bx-answers` and `/bx-research`.
 
 ### Local development
 
 ```bash
-bash install.sh        # symlink the repo + register the plugin
+bash install.sh                 # symlink into ~/.cursor/plugins/local
+bash install.sh --with-claude   # also register in Claude Code
 # ...edit code, then in Cursor: Cmd/Ctrl+Shift+P → Developer: Reload Window
-bash install.sh --uninstall  # tear down
+bash install.sh --uninstall     # tear down
 ```
 
-The script (a) symlinks this checkout into `~/.cursor/plugins/local/brave-search`
-for live iteration, (b) registers the plugin in
-`~/.claude/plugins/installed_plugins.json` under the id `brave-search@local`
-(the `@local` suffix lets it coexist with a marketplace install of plain
-`brave-search`), and (c) enables it in `~/.claude/settings.json`'s
-`enabledPlugins`. If your Cursor build doesn't pick the plugin up after a
-reload, check the [Cursor plugins reference](https://cursor.com/docs/reference/plugins)
+Default is Cursor-only: the script symlinks this checkout into
+`~/.cursor/plugins/local/brave-search-api` for live iteration. Pass
+`--with-claude` to also register `brave-search-api@local` in
+`~/.claude/plugins/installed_plugins.json` and enable it in
+`~/.claude/settings.json`. If your Cursor build doesn't pick the plugin up
+after a reload, check the [Cursor plugins reference](https://cursor.com/docs/reference/plugins)
 for the current local-dev path.
 
 After install, reload Cursor and verify in chat that the `bx` skill and
@@ -82,6 +96,7 @@ node scripts/validate-template.mjs
 ## Quick start
 
 ```text
+/bx-setup
 /bx-search how do Rust lifetimes work
 /bx-answers compare SQLx and Diesel
 /bx-news Next.js 15 release
@@ -105,13 +120,14 @@ Per the [Cursor plugins reference](https://cursor.com/docs/reference/plugins):
 .
 ├── .cursor-plugin/plugin.json   # plugin manifest
 ├── README.md
+├── CHANGELOG.md
 ├── LICENSE                      # MIT
 ├── assets/logo.svg              # marketplace logo
-├── rules/                       # 1 rule (prefer-bx + citation standards)
-├── skills/                      # 7 SKILL.md files: bx, answers, llm-context,
-│                                #   web-search, news-search, images-search,
-│                                #   videos-search
-├── commands/                    # 7 /bx-* slash commands
+├── rules/                       # 1 short awareness rule (prefer bx / MCP)
+├── skills/                      # 6 SKILL.md files: bx, answers, llm-context,
+│                                #   news-search, images-search, videos-search
+├── commands/                    # 8 /bx-* slash commands
+├── mcp.json                     # stdio MCP: npx @brave/brave-search-mcp-server
 ├── docs/api-key-setup.md
 ├── install.sh                   # local-dev install/uninstall helper
 └── scripts/validate-template.mjs
@@ -121,6 +137,7 @@ Per the [Cursor plugins reference](https://cursor.com/docs/reference/plugins):
 
 - Skills are derived from [`brave/brave-search-skills`](https://github.com/brave/brave-search-skills) (MIT, © Brave Software).
 - The `bx` CLI lives at [`brave/brave-search-cli`](https://github.com/brave/brave-search-cli) (MIT, © Brave Software).
+- The MCP server is [`brave/brave-search-mcp-server`](https://github.com/brave/brave-search-mcp-server) (MIT, © Brave Software).
 
 ## License
 

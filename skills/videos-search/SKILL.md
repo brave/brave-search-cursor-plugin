@@ -1,8 +1,8 @@
 ---
 name: videos-search
-description: USE FOR video search. Returns videos with title, URL, thumbnail, duration, view count, creator. Supports freshness filters, SafeSearch, pagination.
+description: Returns videos with title, URL, duration, views, and creator. Use when the user explicitly wants video content such as conference talks, tutorials, or demos.
 allowed-tools: Bash(curl:*), Bash(bx:*)
-compatibility: Requires `curl`, a Brave Search API key (`BRAVE_SEARCH_API_KEY`), and network access to api.search.brave.com.
+compatibility: Requires `curl`, a Brave Search API key (`BRAVE_API_KEY`), and network access to api.search.brave.com.
 ---
 
 # Video Search (Brave)
@@ -11,13 +11,13 @@ Find videos for: $ARGUMENTS
 
 ## When to pick this skill
 
-Reach for this when the user explicitly wants video content — conference talks, tutorials, demos. For "explain X" prefer `llm-context` (text grounding) or `answers` (synthesized answer). For "find a quick clip", `web-search` with `result_filter=videos` may also work.
+Reach for this when the user explicitly wants video content — conference talks, tutorials, demos. For "explain X" prefer `llm-context` (text grounding) or `answers` (synthesized answer).
 
 ## Canonical call
 
 ```bash
 curl -fsSL "https://api.search.brave.com/res/v1/videos/search" \
-  -H "X-Subscription-Token: ${BRAVE_SEARCH_API_KEY}" \
+  -H "X-Subscription-Token: ${BRAVE_API_KEY}" \
   -G --data-urlencode "q=$ARGUMENTS" \
   --data-urlencode "count=20"
 ```
@@ -57,8 +57,13 @@ Pull `results[].url`, `results[].video.duration`, `results[].video.creator`, `re
 
 ## Citing results
 
-Cite as `[Title — Creator (duration)](URL)`. See [`rules/prefer-bx-for-web-search.mdc`](../../rules/prefer-bx-for-web-search.mdc).
+Cite as `[Title — Creator (duration)](URL)` from the search output only. End with a Sources section.
 
-## If `curl` or the API key is unavailable
+## If `bx`, MCP, `curl`, or the API key is unavailable
 
-Stop. Tell the user to set `BRAVE_SEARCH_API_KEY` (see [`docs/api-key-setup.md`](../../docs/api-key-setup.md)), or install `bx` via `/bx-install` + `/bx-set-key` and use `bx videos` instead.
+1. Prefer `bx` when it is on PATH (`bx videos "$ARGUMENTS"`).
+2. If `bx` is missing, use `brave_video_search` when the MCP server is connected.
+3. Otherwise use this skill's `curl` call with `BRAVE_API_KEY`.
+4. If none of those can authenticate, **stop**. Tell the user to run
+   `/bx-setup` (Configure for MCP, `/bx-set-key` for the CLI). See
+   [`docs/api-key-setup.md`](../../docs/api-key-setup.md).

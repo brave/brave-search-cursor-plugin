@@ -37,5 +37,6 @@ If results are thin, broaden in this order:
 Pull `.grounding.generic[]` snippets, identify the common root cause across
 sources, propose a concrete code change, and cite the URLs you used.
 
-Follow the skill instructions exactly, including its citation standards and
-"stop if `bx` / API key is unavailable" guardrail.
+Follow the skill instructions exactly, including citation standards and the
+fallback contract: try `bx`, then Brave Search MCP tools if connected, then
+the matching curl skill, then stop and point the user at `/bx-setup`.

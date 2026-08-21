@@ -1,79 +1,17 @@
 ---
-description: Prefer the bx CLI (or the bx skill) for web search, RAG/LLM grounding, fact-checking, documentation lookups, and current-events research. Cite every fact with the URL it came from. Avoids ad-hoc curl/scrape pipelines and gives token-budgeted, citation-ready output.
-alwaysApply: false
+description: Contextual awareness for Brave Search — suggests using bx or the Brave Search MCP tools when the user's request needs live web data, grounding, docs, news, or research
+alwaysApply: true
 ---
 
-# Prefer `bx` for web search and grounding
+# Brave Search awareness
 
-When the user asks you to look something up on the web, ground a claim in real
-sources, fetch fresh information beyond your training cutoff, debug an error
-message, or research a topic — reach for the Brave Search CLI (`bx`) or the
-matching SKILL in this plugin instead of writing one-off `curl` calls or
-scraping pages by hand.
+You have access to Brave Search via the `bx` CLI and the Brave Search MCP tools. Use them proactively when relevant:
 
-## When to use what
+- **Live web, docs, errors, fact-check**: `bx "<query>"` (token-budgeted RAG) or MCP `brave_llm_context`
+- **Ranked hits / forums / SERP**: `bx web "<query>"` or MCP `brave_web_search`
+- **Cited explanation**: `bx answers "<question>"` or `/bx-answers` (not on MCP)
+- **Deep research**: `bx answers "<topic>" --enable-research` or `/bx-research`
+- **News**: `bx news "<query>"` or MCP `brave_news_search`
+- **Images / videos / places**: MCP `brave_image_search`, `brave_video_search`, `brave_place_search` / `brave_local_search`
 
-| Need | Use |
-|--|--|
-| Look up docs, errors, code patterns, fresh info | `bx "<query>"` (the default `bx context`) — pre-extracted, token-budgeted RAG content |
-| Synthesized explanation with citations | `bx answers "<question>"` — OpenAI-compatible, streams by default |
-| Deep multi-step research | `bx answers "<topic>" --enable-research` — can take ~5 min; set timeout accordingly |
-| Traditional search results (web/news/discussions/FAQ) | `bx web "<query>"` |
-| Recent news with freshness filter | `bx news "<query>" --freshness pd\|pw\|pm\|py` |
-| Restrict to / exclude domains | `--include-site docs.rs --include-site github.com` or `--exclude-site example.com` |
-| Custom re-ranking | `--goggles` (inline, `@/path/to/file`, `@-` from stdin, or hosted URL) |
-
-The slash commands `/bx-search`, `/bx-answers`, `/bx-research`, `/bx-news`,
-and `/bx-debug` are thin wrappers over these patterns and are usually the
-fastest way to invoke them.
-
-## Citation standards
-
-When you present information that came from `bx` (or any of the raw-API
-skills), apply these rules without exception:
-
-- **Every claim gets an inline citation** as a markdown link
-  `[Source title](URL)`. No bare facts.
-- **Only cite URLs that appear in the search output.** Never invent, guess,
-  or paraphrase URLs. If a fact has no source, don't make the claim.
-- **Lead with the answer**, then back it up with specific facts (numbers,
-  dates, names) — each with its citation.
-- **End with a Sources section** that lists every URL referenced, with the
-  title and (if available) the page age:
-
-  ```text
-  Sources:
-  - [Source title](https://example.com/article) (Feb 2026)
-  - [Another source](https://example.com/other) (Jan 2026)
-  ```
-
-  This Sources section is mandatory. Do not omit it.
-
-## When you can't use `bx`
-
-If the `bx` binary genuinely isn't available and you can't install it (e.g. a
-sandboxed environment), fall back to the matching `SKILL.md` under
-`skills/*/SKILL.md` — they document the raw Brave Search API endpoints with
-ready-to-run `curl` examples. Always send the `X-Subscription-Token` header
-from `BRAVE_SEARCH_API_KEY` and prefer `llm-context` over `web-search` for
-RAG/grounding workflows.
-
-If neither `bx` nor a working API key is available, **stop and tell the
-user** — do NOT silently fall back to the model's training data or to a
-generic web-search tool. The whole point of installing this plugin is that
-the user wants Brave Search's grounded results.
-
-## Anti-patterns to avoid
-
-- Hand-rolled `curl | grep | sed` scraping when `bx context` would return
-  pre-extracted, relevance-scored snippets in one call.
-- Concatenating long `site:X OR site:Y OR site:Z` chains in the query string
-  instead of using `--include-site` (multiple times) or `--goggles`.
-- Streaming answers when you only need the final text — pass `--no-stream`
-  for programmatic use.
-- Forgetting the token budget on long-running grounding queries — pass
-  `--max-tokens 4096` (or higher) and `--threshold strict` to keep noise out.
-- Pasting raw JSON output back to the user instead of synthesizing and
-  citing — JSON is for you, prose with citations is for them.
-- Inventing a plausible-sounding URL because the search didn't return one.
-  If you don't have a real source, say so.
+Prefer these over hand-rolled curl/scrape. Cite claims as `[title](url)` from search output only.

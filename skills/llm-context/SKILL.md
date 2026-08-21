@@ -1,8 +1,8 @@
 ---
 name: llm-context
-description: USE FOR RAG/LLM grounding. Returns pre-extracted web content (text, tables, code) optimized for LLMs. GET + POST. Adjust max_tokens/count based on complexity. Supports Goggles, local/POI. For AI answers use answers. Recommended for anyone building AI/agentic applications.
+description: Returns pre-extracted, token-budgeted web content (text, tables, code) for RAG and agent reasoning. Use when grounding a claim, looking up documentation, fact-checking, or gathering sources the agent will reason over. Prefer answers for a finished explanation.
 allowed-tools: Bash(curl:*), Bash(bx:*)
-compatibility: Requires `curl`, a Brave Search API key (`BRAVE_SEARCH_API_KEY`), and network access to api.search.brave.com.
+compatibility: Requires `curl`, a Brave Search API key (`BRAVE_API_KEY`), and network access to api.search.brave.com.
 ---
 
 # LLM Context (Brave)
@@ -11,13 +11,13 @@ Ground a query in real web content for: $ARGUMENTS
 
 ## When to pick this skill
 
-This is the right skill when _the agent_ will reason over the web content — RAG, agent tool calls, fact-checking, doc lookup. Use `web-search` for raw hits, `answers` for an end-to-end synthesized answer. If `bx` is on PATH, `bx "$ARGUMENTS"` calls this same endpoint with sensible defaults.
+This is the right skill when _the agent_ will reason over the web content — RAG, agent tool calls, fact-checking, doc lookup. Use `bx web` or MCP `brave_web_search` for raw ranked hits, `answers` for an end-to-end synthesized answer. If `bx` is on PATH, `bx "$ARGUMENTS"` calls this same endpoint with sensible defaults.
 
 ## Canonical call
 
 ```bash
 curl -fsSL "https://api.search.brave.com/res/v1/llm/context" \
-  -H "X-Subscription-Token: ${BRAVE_SEARCH_API_KEY}" \
+  -H "X-Subscription-Token: ${BRAVE_API_KEY}" \
   -G --data-urlencode "q=$ARGUMENTS"
 ```
 
@@ -77,11 +77,13 @@ Pull `grounding.generic[]` — `snippets` are pre-extracted, query-relevant chun
 
 ## Citing results
 
-See [`rules/prefer-bx-for-web-search.mdc`](../../rules/prefer-bx-for-web-search.mdc). Every fact pulled from a snippet gets `[Title](URL)` — only cite URLs present in `grounding.generic[].url`. End with a Sources section.
+Every fact pulled from a snippet gets `[Title](URL)` — only cite URLs present in `grounding.generic[].url`. End with a Sources section.
 
-## If `curl` or the API key is unavailable
+## If `bx`, MCP, `curl`, or the API key is unavailable
 
-Stop. Do not search the web yourself, do not use a built-in search tool, do not answer from training data. Tell the user one of:
-
-- Set `BRAVE_SEARCH_API_KEY` (see [`docs/api-key-setup.md`](../../docs/api-key-setup.md)) and retry.
-- Install `bx` via `/bx-install`, run `/bx-set-key`, and use `bx` (or `/bx-search`) instead — same endpoint, no key juggling.
+1. Prefer `bx` when it is on PATH (`bx "$ARGUMENTS"`).
+2. If `bx` is missing, use `brave_llm_context` when the MCP server is connected.
+3. Otherwise use this skill's `curl` call with `BRAVE_API_KEY`.
+4. If none of those can authenticate, **stop**. Tell the user to run
+   `/bx-setup` (Configure for MCP, `/bx-set-key` for the CLI). See
+   [`docs/api-key-setup.md`](../../docs/api-key-setup.md).

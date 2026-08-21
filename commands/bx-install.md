@@ -37,8 +37,9 @@ Install or update the Brave Search CLI (`bx`) on the user's machine.
    the script's stdout/stderr so the user can see the install location, and
    suggest adding it to `PATH` (e.g. `~/.local/bin` on Linux,
    `/usr/local/bin` on macOS, `%USERPROFILE%\.bx\bin` on Windows).
-5. **Next step:** prompt the user to run `/bx-set-key` to configure their
-   Brave Search API key.
+5. **Next step:** run `/bx-setup` if this is first-run. If `BRAVE_API_KEY` is
+   already in the environment, `bx` will use it; otherwise `/bx-set-key`.
+   Plugin Configure does not export the key into the agent shell.
 
 ## Notes
 

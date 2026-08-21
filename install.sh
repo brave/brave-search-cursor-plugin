@@ -2,21 +2,22 @@
 # install.sh — install the Brave Search plugin for Cursor (local development)
 #
 # Usage:
-#   bash install.sh             # install from this checkout
-#   bash install.sh --uninstall # remove
+#   bash install.sh                # symlink into ~/.cursor/plugins/local
+#   bash install.sh --with-claude  # also register in Claude Code's plugin files
+#   bash install.sh --uninstall    # remove the Cursor symlink (and Claude
+#                                  # registration if present)
 #
-# Symlinks this repo into ~/.cursor/plugins/local/brave-search and registers
-# it in ~/.claude/plugins/installed_plugins.json + ~/.claude/settings.json so
-# Cursor discovers and enables it on next reload.
+# Default is Cursor-only. --with-claude writes ~/.claude/plugins/installed_plugins.json
+# and ~/.claude/settings.json so the same checkout can load in Claude Code.
 #
 # This is the local-development install. The marketplace install (after
 # submission) doesn't need any of this — Cursor handles registration itself.
 
 set -euo pipefail
 
-PLUGIN_NAME="brave-search"
+PLUGIN_NAME="brave-search-api"
 # Local-dev plugin id uses an `@local` suffix to coexist with a marketplace
-# install of the same plugin (which registers as plain `brave-search`).
+# install of the same plugin (which registers as plain `brave-search-api`).
 PLUGIN_ID="${PLUGIN_NAME}@local"
 PLUGIN_DIR="${HOME}/.cursor/plugins/local/${PLUGIN_NAME}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -25,10 +26,24 @@ CLAUDE_DIR="${HOME}/.claude"
 CLAUDE_PLUGINS="${CLAUDE_DIR}/plugins/installed_plugins.json"
 CLAUDE_SETTINGS="${CLAUDE_DIR}/settings.json"
 
+usage() {
+  cat <<'EOF'
+Usage: bash install.sh [--with-claude] [--uninstall|-u] [--help|-h]
+
+  (no flags)       Symlink this repo into ~/.cursor/plugins/local for Cursor.
+  --with-claude    Also register/enable the plugin in Claude Code
+                   (~/.claude/plugins/installed_plugins.json and
+                   ~/.claude/settings.json).
+  --uninstall, -u  Remove the Cursor symlink. Also drops a leftover Claude
+                   Code registration if those files exist.
+  --help, -h       Show this help.
+EOF
+}
+
 require_python3() {
   if ! command -v python3 >/dev/null 2>&1; then
-    echo "error: python3 is required to register the plugin (steps 2-3)." >&2
-    echo "       install python3 (or use the marketplace install) and retry." >&2
+    echo "error: python3 is required to register the plugin in Claude Code." >&2
+    echo "       install python3 and retry, or omit --with-claude." >&2
     exit 1
   fi
 }
@@ -89,6 +104,33 @@ except BaseException:
 PY
 }
 
+deregister_claude() {
+  if [ ! -f "$CLAUDE_PLUGINS" ] && [ ! -f "$CLAUDE_SETTINGS" ]; then
+    return 0
+  fi
+  if ! command -v python3 >/dev/null 2>&1; then
+    echo "warning: leftover Claude Code registration not removed (python3 missing)."
+    echo "         remove ${PLUGIN_ID} from ${CLAUDE_PLUGINS} and ${CLAUDE_SETTINGS} manually."
+    return 0
+  fi
+  if [ -f "$CLAUDE_PLUGINS" ]; then
+    edit_json "$CLAUDE_PLUGINS" deregister "$PLUGIN_ID"
+    echo "Deregistered ${PLUGIN_ID} from ${CLAUDE_PLUGINS}"
+  fi
+  if [ -f "$CLAUDE_SETTINGS" ]; then
+    edit_json "$CLAUDE_SETTINGS" disable "$PLUGIN_ID"
+    echo "Disabled ${PLUGIN_ID} in ${CLAUDE_SETTINGS}"
+  fi
+}
+
+register_claude() {
+  require_python3
+  edit_json "$CLAUDE_PLUGINS" register "$PLUGIN_ID" "$SCRIPT_DIR"
+  echo "Registered ${PLUGIN_ID} in ${CLAUDE_PLUGINS}"
+  edit_json "$CLAUDE_SETTINGS" enable "$PLUGIN_ID"
+  echo "Enabled ${PLUGIN_ID} in ${CLAUDE_SETTINGS}"
+}
+
 uninstall() {
   if [ -L "$PLUGIN_DIR" ]; then
     rm "$PLUGIN_DIR"
@@ -102,23 +144,13 @@ uninstall() {
     echo "Plugin not found at ${PLUGIN_DIR} — nothing to remove."
   fi
 
-  require_python3
-  if [ -f "$CLAUDE_PLUGINS" ]; then
-    edit_json "$CLAUDE_PLUGINS" deregister "$PLUGIN_ID"
-  fi
-  if [ -f "$CLAUDE_SETTINGS" ]; then
-    edit_json "$CLAUDE_SETTINGS" disable "$PLUGIN_ID"
-  fi
+  deregister_claude
 
   echo ""
   echo "Reload Cursor (Cmd/Ctrl+Shift+P → Developer: Reload Window) to apply."
 }
 
-install() {
-  require_python3
-
-  # 1. Symlink the repo into ~/.cursor/plugins/local/ (live iteration —
-  #    edits to the repo show up after a Cursor reload, no re-install).
+install_cursor() {
   mkdir -p "$(dirname "$PLUGIN_DIR")"
   if [ -L "$PLUGIN_DIR" ]; then
     rm "$PLUGIN_DIR"
@@ -129,24 +161,41 @@ install() {
   fi
   ln -s "$SCRIPT_DIR" "$PLUGIN_DIR"
   echo "Symlinked ${SCRIPT_DIR} → ${PLUGIN_DIR}"
-
-  # 2. Register in ~/.claude/plugins/installed_plugins.json
-  edit_json "$CLAUDE_PLUGINS" register "$PLUGIN_ID" "$SCRIPT_DIR"
-  echo "Registered ${PLUGIN_ID} in ${CLAUDE_PLUGINS}"
-
-  # 3. Enable in ~/.claude/settings.json
-  edit_json "$CLAUDE_SETTINGS" enable "$PLUGIN_ID"
-  echo "Enabled ${PLUGIN_ID} in ${CLAUDE_SETTINGS}"
-
-  echo ""
-  echo "Installed. Next steps:"
-  echo "  1. Reload Cursor (Cmd/Ctrl+Shift+P → Developer: Reload Window)."
-  echo "  2. The plugin should appear under Cursor Settings → Plugins."
-  echo "  3. The bx skill and /bx-* commands should be available in chat."
-  echo "  4. Run /bx-install (if bx CLI not yet installed) and /bx-set-key."
 }
 
-case "${1:-}" in
-  --uninstall|-u) uninstall ;;
-  *) install ;;
-esac
+ACTION="install"
+WITH_CLAUDE=0
+
+for arg in "$@"; do
+  case "$arg" in
+    --uninstall|-u) ACTION="uninstall" ;;
+    --with-claude) WITH_CLAUDE=1 ;;
+    --help|-h) usage; exit 0 ;;
+    *)
+      echo "error: unknown argument ${arg}" >&2
+      usage >&2
+      exit 1
+      ;;
+  esac
+done
+
+if [ "$ACTION" = "uninstall" ]; then
+  uninstall
+  exit 0
+fi
+
+install_cursor
+if [ "$WITH_CLAUDE" -eq 1 ]; then
+  register_claude
+fi
+
+echo ""
+echo "Installed. Next steps:"
+echo "  1. Reload Cursor (Cmd/Ctrl+Shift+P → Developer: Reload Window)."
+echo "  2. The plugin should appear under Customize → Plugins."
+echo "  3. Skills appear under Customize → Skills; /bx-* commands in the slash menu."
+echo "  4. Run /bx-setup (Configure for MCP, then install bx and set the CLI key)."
+if [ "$WITH_CLAUDE" -eq 0 ]; then
+  echo ""
+  echo "Cursor-only install. To also register in Claude Code: bash install.sh --with-claude"
+fi

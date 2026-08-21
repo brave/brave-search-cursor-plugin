@@ -20,5 +20,6 @@ based on what the user asked for:
 Add `--exclude-site medium.com` if SEO-blog noise crowds out primary sources;
 add `--include-site reuters.com` (etc.) to allowlist authoritative outlets.
 
-Follow the skill instructions exactly, including its citation standards and
-"stop if `bx` / API key is unavailable" guardrail.
+Follow the skill instructions exactly, including citation standards and the
+fallback contract: try `bx`, then Brave Search MCP tools if connected, then
+the matching curl skill, then stop and point the user at `/bx-setup`.

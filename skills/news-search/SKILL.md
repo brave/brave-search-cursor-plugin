@@ -1,8 +1,8 @@
 ---
 name: news-search
-description: USE FOR news search. Returns news articles with title, URL, description, age, thumbnail. Supports freshness and date range filtering, SafeSearch filter and Goggles for custom ranking.
+description: Returns recent news articles with title, URL, description, and publication age. Supports freshness windows and Goggles. Use when the user asks for latest news, breaking stories, security advisories, or current events.
 allowed-tools: Bash(curl:*), Bash(bx:*)
-compatibility: Requires `curl`, a Brave Search API key (`BRAVE_SEARCH_API_KEY`), and network access to api.search.brave.com.
+compatibility: Requires `curl`, a Brave Search API key (`BRAVE_API_KEY`), and network access to api.search.brave.com.
 ---
 
 # News Search (Brave)
@@ -13,7 +13,7 @@ Find recent news for: $ARGUMENTS
 
 ```bash
 curl -fsSL "https://api.search.brave.com/res/v1/news/search" \
-  -H "X-Subscription-Token: ${BRAVE_SEARCH_API_KEY}" \
+  -H "X-Subscription-Token: ${BRAVE_API_KEY}" \
   -G --data-urlencode "q=$ARGUMENTS" \
   --data-urlencode "freshness=pw" \
   --data-urlencode "count=20"
@@ -62,11 +62,13 @@ Pull `results[]`. `age` (human-readable) and `page_age` (ISO datetime) both matt
 
 ## Citing results
 
-See [`rules/prefer-bx-for-web-search.mdc`](../../rules/prefer-bx-for-web-search.mdc). News answers should include the publication date in the citation: `[Headline](URL) (Apr 2026)`.
+News answers should include the publication date in the citation: `[Headline](URL) (Apr 2026)`. Only cite URLs from the search output; end with a Sources section.
 
-## If `curl` or the API key is unavailable
+## If `bx`, MCP, `curl`, or the API key is unavailable
 
-Stop. Do not search the web yourself, do not use a built-in search tool, do not answer from training data. Tell the user one of:
-
-- Set `BRAVE_SEARCH_API_KEY` (see [`docs/api-key-setup.md`](../../docs/api-key-setup.md)) and retry.
-- Install `bx` via `/bx-install`, run `/bx-set-key`, and use `bx news` (or `/bx-news`) instead.
+1. Prefer `bx` when it is on PATH (`bx news "$ARGUMENTS"`).
+2. If `bx` is missing, use `brave_news_search` when the MCP server is connected.
+3. Otherwise use this skill's `curl` call with `BRAVE_API_KEY`.
+4. If none of those can authenticate, **stop**. Tell the user to run
+   `/bx-setup` (Configure for MCP, `/bx-set-key` for the CLI). See
+   [`docs/api-key-setup.md`](../../docs/api-key-setup.md).

@@ -1,8 +1,8 @@
 ---
 name: answers
-description: "USE FOR AI-grounded answers via OpenAI-compatible /chat/completions. Two modes: single-search (fast) or deep research (enable_research=true, thorough multi-search). Streaming/blocking. Citations."
+description: Synthesizes a cited answer via Brave's OpenAI-compatible chat completions. Single-search is fast; enable_research runs multi-search deep research. Use when the user wants a finished explanation, comparison, or researched report rather than raw sources.
 allowed-tools: Bash(curl:*), Bash(bx:*), Bash(jq:*)
-compatibility: Requires `curl`, a Brave Search API key (`BRAVE_SEARCH_API_KEY`) on the Answers plan, and network access to api.search.brave.com.
+compatibility: Requires `curl`, a Brave Search API key (`BRAVE_API_KEY`) on the Answers plan, and network access to api.search.brave.com.
 ---
 
 # Answers (Brave)
@@ -11,7 +11,7 @@ Synthesize an answer with citations for: $ARGUMENTS
 
 ## When to pick this skill
 
-Use when the user wants a finished answer, not raw context for the agent to reason over. For RAG/grounding prefer `llm-context`. For raw hits prefer `web-search`. If `bx` is on PATH, `bx answers "$ARGUMENTS"` calls this same endpoint with simpler flags.
+Use when the user wants a finished answer, not raw context for the agent to reason over. For RAG/grounding prefer `llm-context`. For raw ranked hits use `bx web` or MCP `brave_web_search`. If `bx` is on PATH, `bx answers "$ARGUMENTS"` calls this same endpoint with simpler flags.
 
 ## Two modes
 
@@ -33,7 +33,7 @@ Constraints to remember:
 ```bash
 curl -fsSL -X POST "https://api.search.brave.com/res/v1/chat/completions" \
   -H "Content-Type: application/json" \
-  -H "X-Subscription-Token: ${BRAVE_SEARCH_API_KEY}" \
+  -H "X-Subscription-Token: ${BRAVE_API_KEY}" \
   -d "$(jq -n --arg q "$ARGUMENTS" '{
     model: "brave",
     stream: false,
@@ -48,7 +48,7 @@ Pull the answer from `.choices[0].message.content`.
 ```bash
 curl -fsSL -X POST "https://api.search.brave.com/res/v1/chat/completions" \
   -H "Content-Type: application/json" \
-  -H "X-Subscription-Token: ${BRAVE_SEARCH_API_KEY}" \
+  -H "X-Subscription-Token: ${BRAVE_API_KEY}" \
   -N --max-time 360 \
   -d "$(jq -n --arg q "$ARGUMENTS" '{
     model: "brave",
@@ -85,11 +85,13 @@ The endpoint is OpenAI-compatible — point any chat-completions client at `base
 
 ## Citing results
 
-See [`rules/prefer-bx-for-web-search.mdc`](../../rules/prefer-bx-for-web-search.mdc). Single-search: surface inline citations from the response. Research: the `<answer>` tag already contains citations — preserve them and end with a Sources section.
+Single-search: surface inline citations from the response. Research: the `<answer>` tag already contains citations — preserve them and end with a Sources section.
 
-## If `curl` or the API key is unavailable
+## If `bx`, `curl`, or the API key is unavailable
 
-Stop. Do not search the web yourself, do not use a built-in search tool, do not answer from training data. Tell the user one of:
+Answers and deep research are **not** on MCP. Prefer `bx` when it is on PATH
+(`bx answers "$ARGUMENTS"`). If `bx` is missing, use this skill's `curl` call
+with `BRAVE_API_KEY` on the Answers plan.
 
-- Set `BRAVE_SEARCH_API_KEY` on the Answers plan (see [`docs/api-key-setup.md`](../../docs/api-key-setup.md)) and retry.
-- Install `bx` via `/bx-install`, run `/bx-set-key`, and use `bx` (or `/bx-answers` / `/bx-research`) instead.
+If there is no working API key either, **stop**. Tell the user to run
+`/bx-setup` (see [`docs/api-key-setup.md`](../../docs/api-key-setup.md)).

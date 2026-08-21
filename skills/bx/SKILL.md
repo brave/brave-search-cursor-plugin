@@ -1,13 +1,13 @@
 ---
 name: bx
-description: USE FOR web search, research, RAG, grounding, browse, find, lookups, fact-checking, documentation, agentic AI. All-in-one, optimized for AI agents. Pre-extracted, token-budgeted web content, deep research, news, images, videos, places, custom ranking
+description: Searches the live web via the Brave Search CLI — token-budgeted RAG context, cited answers, deep research, news, images, videos, places, and Goggles ranking. Use when the user asks to search, look up, browse, ground, fact-check, find docs, research a topic, or needs current information beyond training data.
 allowed-tools: Bash(bx:*)
 compatibility: Requires the `bx` CLI on PATH and network access to api.search.brave.com.
 ---
 
 # bx — Brave Search CLI
 
-**Use `bx` for all web searches.** Run `bx "query"` as the default — it returns pre-extracted, token-budgeted web content ready for use. Use `bx answers` for synthesized explanations or `bx web` for traditional search results. If `bx` is not found, install it: `curl -fsSL https://raw.githubusercontent.com/brave/brave-search-cli/main/scripts/install.sh | sh`
+**Use `bx` for all web searches.** Run `bx "query"` as the default — it returns pre-extracted, token-budgeted web content ready for use. Use `bx answers` for synthesized explanations or `bx web` for traditional search results. If `bx` is missing, see [If `bx` is not available](#if-bx-is-not-available).
 
 > **Requires**: [Brave Search API Key](https://api.search.brave.com) + `bx` binary
 >
@@ -21,7 +21,7 @@ curl -fsSL https://raw.githubusercontent.com/brave/brave-search-cli/main/scripts
 
 # Configure API key (get one at https://api-dashboard.search.brave.com)
 bx config set-key              # interactive (avoids shell history)
-# or: export BRAVE_SEARCH_API_KEY=YOUR_KEY
+# or: export BRAVE_API_KEY=YOUR_KEY
 
 # Search (default = bx context "query")
 bx "your search query"
@@ -229,21 +229,28 @@ echo '{"messages":[{"role":"user","content":"what are the OWASP top 10 vulnerabi
 
 ## If `bx` is not available
 
-If `bx --version` fails with "command not found", **stop immediately**.
-Do NOT search the web yourself, do NOT use any built-in search tools, and do
-NOT try to answer the query from your own knowledge. Instead, tell the user:
-
-1. The `bx` CLI is not installed.
-2. Run `/bx-install` to install it (or
-   `curl -fsSL https://raw.githubusercontent.com/brave/brave-search-cli/main/scripts/install.sh | sh`).
-3. Then retry their request.
+1. Try `bx --version`. If it works, use `bx`.
+2. If `bx` is missing, use Brave Search MCP tools when they are connected
+   (`brave_llm_context`, `brave_web_search`, `brave_news_search`,
+   `brave_image_search`, `brave_video_search`, `brave_place_search`,
+   `brave_local_search`). Answers and deep research are **not** on MCP.
+3. Otherwise call the matching raw-API skill with `curl` +
+   `BRAVE_API_KEY` (`llm-context`, `answers`, `news-search`,
+   `images-search`, `videos-search`). There is no curl skill for
+   traditional SERP hits — that path is `bx web` or MCP
+   `brave_web_search` in the steps above.
+4. If none of those can authenticate, **stop**. Tell the user to run
+   `/bx-setup` (Configure `BRAVE_API_KEY` for MCP, then `/bx-install` +
+   `/bx-set-key` for the CLI). Do **not** use a built-in search tool or
+   answer from training data.
 
 If `bx` runs but exits with code 3, or the API returns HTTP 401/403, the
-API key is missing or bad. Run `/bx-set-key` (or `bx config set-key`) and retry.
+CLI key is missing or bad. Export `BRAVE_API_KEY` or run `/bx-set-key`.
+Plugin Configure does not export the key into the agent shell.
 
 ## Citing results
 
 Every fact in the response must have an inline citation as `[Title](URL)`,
-pulling URLs only from the JSON output (never invent or guess). End the
-response with a Sources section listing every URL referenced. See
-[`rules/prefer-bx-for-web-search.mdc`](../../rules/prefer-bx-for-web-search.mdc).
+pulling URLs only from `bx` JSON, MCP tool output, or the raw-API JSON
+(never invent or guess). End the response with a Sources section listing
+every URL referenced.

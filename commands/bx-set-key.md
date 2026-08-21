@@ -8,6 +8,11 @@ description: Configure the Brave Search API key for the `bx` CLI without leaking
 Configure the Brave Search API key the `bx` CLI uses for authentication. Sets
 the key without exposing it in shell history or process listings.
 
+Skip this command if `BRAVE_API_KEY` is already set in the environment —
+`bx` reads that name directly. This writes the `bx` config file; it does
+**not** fill plugin **Configure**. If MCP tools are missing or red, the user
+still needs **Customize → Plugins → Brave Search API → Configure**.
+
 ## Steps
 
 1. **Verify install.** Run `bx --version`. If it fails, run `/bx-install`
@@ -52,19 +57,19 @@ the key without exposing it in shell history or process listings.
 ## Alternatives the user may prefer
 
 If they don't want a config file (e.g. ephemeral environments, CI), env-var
-based config also works — `bx` resolves `BRAVE_SEARCH_API_KEY` automatically:
+based config also works — `bx` resolves `BRAVE_API_KEY` automatically:
 
 - **direnv** (directory-scoped, recommended for project use):
 
   ```bash
-  echo 'export BRAVE_SEARCH_API_KEY="..."' >> .envrc
+  echo 'export BRAVE_API_KEY="..."' >> .envrc
   direnv allow
   ```
 
 - **Shell profile** (`~/.zshrc` / `~/.bashrc`):
 
   ```bash
-  export BRAVE_SEARCH_API_KEY="..."
+  export BRAVE_API_KEY="..."
   ```
 
   After editing, restart Cursor (relaunch from a fresh terminal — reloading
@@ -78,6 +83,6 @@ matrix (Cursor, Codex, Claude Code, Docker / CI, etc.).
 
 - Get a key at <https://api.search.brave.com>. All plans include $5/month of
   free credits.
-- Resolution priority in `bx`: `--api-key` flag > env var > config file >
-  interactive prompt. Prefer the config file or env var over the CLI flag —
-  flag values show up in `ps`.
+- Resolution priority in `bx`: `--api-key` flag > `BRAVE_API_KEY` env >
+  config file > interactive prompt. Prefer the config file or env var over
+  the CLI flag — flag values show up in `ps`.

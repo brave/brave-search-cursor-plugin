@@ -1,10 +1,11 @@
 {
-  "name": "brave-search",
-  "displayName": "Brave Search",
+  "name": "brave-search-api",
+  "displayName": "Brave Search API",
   "version": "1.0.0",
-  "description": "Brave Search skills + bx CLI commands for AI-grounded web search, RAG/LLM context, deep research, news, images, videos, and places.",
+  "description": "Ground the agent in Brave's independent web index — token-budgeted RAG, cited answers, deep research, news, images, and videos via the bx CLI and Brave Search MCP.",
   "author": {
-    "name": "Brave Software"
+    "name": "Brave Software",
+    "email": "searchapi-support@brave.com"
   },
   "homepage": "https://brave.com/search/api/",
   "repository": "https://github.com/brave/brave-search-cursor-plugin",
@@ -18,7 +19,29 @@
     "grounding",
     "research",
     "news",
-    "goggles"
+    "goggles",
+    "mcp"
   ],
-  "logo": "assets/logo.svg"
+  "logo": "assets/logo.svg",
+  "category": "data-analytics",
+  "tags": [
+    "search",
+    "web-search",
+    "rag",
+    "research",
+    "brave",
+    "mcp"
+  ],
+  "mcpServers": "./mcp.json",
+  "variables": {
+    "type": "object",
+    "properties": {
+      "BRAVE_API_KEY": {
+        "type": "string",
+        "title": "Brave Search API key",
+        "description": "Key from https://api.search.brave.com. Cursor starts the MCP server with this value. Use the same BRAVE_API_KEY in the environment for bx and curl (or run /bx-set-key)."
+      }
+    },
+    "required": ["BRAVE_API_KEY"]
+  }
 }
