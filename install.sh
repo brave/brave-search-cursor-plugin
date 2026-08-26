@@ -20,9 +20,9 @@
 
 set -euo pipefail
 
-PLUGIN_NAME="brave-search-api"
+PLUGIN_NAME="brave-search"
 # Local-dev plugin id uses an `@local` suffix to coexist with a marketplace
-# install of the same plugin (which registers as plain `brave-search-api`).
+# install of the same plugin (which registers as plain `brave-search`).
 PLUGIN_ID="${PLUGIN_NAME}@local"
 PLUGIN_DIR="${HOME}/.cursor/plugins/local/${PLUGIN_NAME}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -147,7 +147,7 @@ register_claude() {
 looks_like_our_plugin() {
   local manifest="$1/.cursor-plugin/plugin.json"
   [ -f "$manifest" ] || return 1
-  grep -q '"name"[[:space:]]*:[[:space:]]*"brave-search-api"' "$manifest"
+  grep -q '"name"[[:space:]]*:[[:space:]]*"brave-search"' "$manifest"
 }
 
 uninstall() {

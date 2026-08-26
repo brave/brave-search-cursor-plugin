@@ -17,9 +17,9 @@ Use when the user wants a finished answer, not raw context for the agent to reas
 
 ## Two modes
 
-| Mode | Latency | Best for |
-|---|---|---|
-| **Single-search** (default) | ~5–30s | Most factual / explanatory questions |
+| Mode                                  | Latency      | Best for                                                      |
+| ------------------------------------- | ------------ | ------------------------------------------------------------- |
+| **Single-search** (default)           | ~5–30s       | Most factual / explanatory questions                          |
 | **Research** (`enable_research=true`) | up to ~5 min | Comparative, "what changed over time", multi-source synthesis |
 
 Constraints to remember:
@@ -68,22 +68,22 @@ The endpoint is OpenAI-compatible — point any chat-completions client at `base
 
 ## Knobs that matter
 
-| Param | Default | Use when |
-|---|---|---|
-| `enable_citations` | `false` | Streaming single-search only — adds `<citation>` inline tags |
-| `enable_research` | `false` | Multi-iteration deep research (takes minutes) |
-| `research_maximum_number_of_iterations` | 4 | Cap research depth (1–5) |
-| `research_maximum_number_of_seconds` | 180 | Time budget (1–300) |
-| `country` / `language` / `safesearch` | US / en / moderate | Standard locale knobs |
+| Param                                   | Default            | Use when                                                     |
+| --------------------------------------- | ------------------ | ------------------------------------------------------------ |
+| `enable_citations`                      | `false`            | Streaming single-search only — adds `<citation>` inline tags |
+| `enable_research`                       | `false`            | Multi-iteration deep research (takes minutes)                |
+| `research_maximum_number_of_iterations` | 4                  | Cap research depth (1–5)                                     |
+| `research_maximum_number_of_seconds`    | 180                | Time budget (1–300)                                          |
+| `country` / `language` / `safesearch`   | US / en / moderate | Standard locale knobs                                        |
 
 ## Streaming tags (research mode)
 
-| Tag | Keep? |
-|---|---|
-| `<answer>` | **Yes** — the final synthesized answer |
-| `<blindspots>` | **Yes** — knowledge gaps the model couldn't resolve |
-| `<usage>` | **Yes** — JSON token / cost data |
-| `<progress>`, `<thinking>`, `<analyzing>`, `<queries>` | Debug only — ignore for the user-facing reply |
+| Tag                                                    | Keep?                                               |
+| ------------------------------------------------------ | --------------------------------------------------- |
+| `<answer>`                                             | **Yes** — the final synthesized answer              |
+| `<blindspots>`                                         | **Yes** — knowledge gaps the model couldn't resolve |
+| `<usage>`                                              | **Yes** — JSON token / cost data                    |
+| `<progress>`, `<thinking>`, `<analyzing>`, `<queries>` | Debug only — ignore for the user-facing reply       |
 
 ## Citing results
 

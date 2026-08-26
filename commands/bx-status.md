@@ -42,12 +42,12 @@ Only if `bx` is on PATH and a key is present:
 bx web "test" --count 1
 ```
 
-| Exit | Meaning | Next step |
-| ---- | ------- | --------- |
-| 0 | Working | CLI path is good |
-| 3 | Auth (401/403) | Rotate the key at https://api.search.brave.com and `/bx-set-key` |
-| 4 | Rate limited | Key works; wait or upgrade plan |
-| 5 | Network/server | Retry; check connectivity to api.search.brave.com |
+| Exit | Meaning        | Next step                                                                           |
+| ---- | -------------- | ----------------------------------------------------------------------------------- |
+| 0    | Working        | CLI path is good                                                                    |
+| 3    | Auth (401/403) | Rotate the key at https://api-dashboard.search.brave.com/app/keys and `/bx-set-key` |
+| 4    | Rate limited   | Key works; wait or upgrade plan                                                     |
+| 5    | Network/server | Retry; check connectivity to api.search.brave.com                                   |
 
 ## 4. Report
 

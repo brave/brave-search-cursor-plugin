@@ -24,7 +24,7 @@ blocking other search tools.
 
 ## Prerequisites
 
-1. Get a Brave Search API key at <https://api.search.brave.com>. All plans
+1. Get a Brave Search API key at <https://api-dashboard.search.brave.com/app/keys>. All plans
    include $5/month of free credits.
 2. Run `/bx-setup` from chat. One env name, `BRAVE_API_KEY`:
    - Set `BRAVE_API_KEY` in the environment, or run `bx config set-key`, for
@@ -53,7 +53,7 @@ blocking other search tools.
 ### From the Cursor Marketplace
 
 Open Cursor → Customize → Plugins (or the marketplace panel) → search
-"Brave Search API" → install.
+"Brave Search" → install.
 
 - Skills appear under **Customize → Skills** (Agent Decides) and can be
   invoked with `/bx`, `/brave-llm-context`, `/brave-answers`, etc.
@@ -75,11 +75,11 @@ bash install.sh --uninstall     # tear down
 ```
 
 Default is Cursor-only: the script **copies** this checkout into
-`~/.cursor/plugins/local/brave-search-api`. Cursor currently rejects
+`~/.cursor/plugins/local/brave-search`. Cursor currently rejects
 local-plugin symlinks whose target is outside that directory, so a copy is
 what actually loads. Re-run `install.sh` after you edit the plugin, then
 reload. `--symlink` is opt-in for builds that allow live iteration. Pass
-`--with-claude` to also register `brave-search-api@local` in
+`--with-claude` to also register `brave-search@local` in
 `~/.claude/plugins/installed_plugins.json` and enable it in
 `~/.claude/settings.json`. If the plugin still does not appear after a
 reload, confirm the copy exists at that path and see the

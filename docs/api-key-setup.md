@@ -1,18 +1,18 @@
 # API Key Setup
 
-This plugin needs a [Brave Search API key](https://api.search.brave.com).
+This plugin needs a [Brave Search API key](https://api-dashboard.search.brave.com).
 One environment variable, `BRAVE_API_KEY`, authenticates every path:
 
-| Path | How it picks up `BRAVE_API_KEY` |
-| ---- | ------------------------------- |
-| `bx` slash commands | Shell env, or `bx config set-key` |
-| Raw-API skills (`curl`) | Shell env (`${BRAVE_API_KEY}`) |
+| Path                    | How it picks up `BRAVE_API_KEY`   |
+| ----------------------- | --------------------------------- |
+| `bx` slash commands     | Shell env, or `bx config set-key` |
+| Raw-API skills (`curl`) | Shell env (`${BRAVE_API_KEY}`)    |
 
 `bx` also accepts the older name `BRAVE_SEARCH_API_KEY`; this plugin uses `BRAVE_API_KEY` only.
 
 ## Get a key
 
-1. Sign up at <https://api.search.brave.com>.
+1. Sign up at <https://api-dashboard.search.brave.com/register>.
 2. Choose a plan — all plans include **$5/month of free credits** (~1,000
    queries on the entry tier).
 3. Open **API Keys** in the dashboard and generate a key. Different endpoints
@@ -101,17 +101,17 @@ A non-empty title means you're good.
 
 ## Troubleshooting
 
-| Symptom | Likely cause | Fix |
-|--|--|--|
-| `error: missing API key` from `bx` | No key set anywhere | Run `bx config set-key` or `export BRAVE_API_KEY=...` |
-| HTTP 401 / 403, exit code 3 | Bad / expired key | Rotate at <https://api.search.brave.com> and re-set |
-| HTTP 403 "Option not in plan" | Endpoint requires a higher tier (e.g. Answers) | Upgrade your plan |
-| HTTP 429, exit code 4 | Rate limited | Back off and retry, or upgrade plan |
-| `bx` works in terminal, not in Cursor chat | Cursor was launched before the env var was set | Fully quit Cursor and relaunch from a fresh shell |
+| Symptom                                    | Likely cause                                   | Fix                                                                    |
+| ------------------------------------------ | ---------------------------------------------- | ---------------------------------------------------------------------- |
+| `error: missing API key` from `bx`         | No key set anywhere                            | Run `bx config set-key` or `export BRAVE_API_KEY=...`                  |
+| HTTP 401 / 403, exit code 3                | Bad / expired key                              | Rotate at <https://api-dashboard.search.brave.com/app/keys> and re-set |
+| HTTP 403 "Option not in plan"              | Endpoint requires a higher tier (e.g. Answers) | Upgrade your plan                                                      |
+| HTTP 429, exit code 4                      | Rate limited                                   | Back off and retry, or upgrade plan                                    |
+| `bx` works in terminal, not in Cursor chat | Cursor was launched before the env var was set | Fully quit Cursor and relaunch from a fresh shell                      |
 
 ## Related docs
 
-- Brave Search API console: <https://api.search.brave.com>
+- Brave Search API console: <https://api-dashboard.search.brave.com/app/dashboard>
 - `bx` CLI: <https://github.com/brave/brave-search-cli>
 - Upstream Brave Search skills: <https://github.com/brave/brave-search-skills>
 - Cursor plugins reference: <https://cursor.com/docs/reference/plugins>

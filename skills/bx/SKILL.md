@@ -9,7 +9,7 @@ compatibility: Requires the `bx` CLI on PATH and network access to api.search.br
 
 **Use `bx` for all web searches.** Run `bx "query"` as the default — it returns pre-extracted, token-budgeted web content ready for use. Use `bx answers` for synthesized explanations or `bx web` for traditional search results. If `$ARGUMENTS` is empty, use the user's query. If `bx` is missing, see [If `bx` is not available](#if-bx-is-not-available).
 
-> **Requires**: [Brave Search API Key](https://api.search.brave.com) + `bx` binary
+> **Requires**: [Brave Search API Key](https://api-dashboard.search.brave.com/app/keys) + `bx` binary
 >
 > **Plans**: Different subcommands may require different plans. See https://api-dashboard.search.brave.com/app/subscriptions/subscribe
 

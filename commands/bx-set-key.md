@@ -25,6 +25,7 @@ Skip this command if `BRAVE_API_KEY` is already set in the environment —
    which would land in this chat's context (and from there in the model
    provider's logs). If the check reports "key already set", ask the user
    whether to overwrite before proceeding.
+
 3. **Run interactive set-key:**
 
    ```bash
@@ -35,7 +36,6 @@ Skip this command if `BRAVE_API_KEY` is already set in the environment —
    avoids both shell history (`history`) and process listings (`ps aux`).
    The key is written to the config file (run `bx config path` to see the
    exact location):
-
    - Linux: `~/.config/brave-search/config.json`
    - macOS: `~/Library/Application Support/brave-search/config.json`
    - Windows: `%APPDATA%\brave-search\config.json`
@@ -49,7 +49,7 @@ Skip this command if `BRAVE_API_KEY` is already set in the environment —
 
    - Exit 0 → working.
    - Exit 3 → bad/expired key. Have the user re-issue at
-     <https://api.search.brave.com> and retry.
+     <https://api-dashboard.search.brave.com/app/keys> and retry.
    - Exit 4 → rate-limited (key works, plan is over its quota).
 
 ## Alternatives the user may prefer
@@ -79,7 +79,7 @@ matrix (Cursor, Codex, Claude Code, Docker / CI, etc.).
 
 ## Notes
 
-- Get a key at <https://api.search.brave.com>. All plans include $5/month of
+- Get a key at <https://api-dashboard.search.brave.com/app/keys>. All plans include $5/month of
   free credits.
 - Resolution priority in `bx`: `--api-key` flag > `BRAVE_API_KEY` env >
   config file > interactive prompt. Prefer the config file or env var over
