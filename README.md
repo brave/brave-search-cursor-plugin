@@ -133,6 +133,7 @@ Per the [Cursor plugins reference](https://cursor.com/docs/reference/plugins):
 │                                #   brave-images-search, brave-videos-search
 ├── commands/                    # /bx-* slash commands (setup, search, status, …)
 ├── docs/api-key-setup.md
+├── docs/safe-query-handling.md  # how user text reaches a search call
 ├── install.sh                   # local-dev install/uninstall helper
 └── scripts/validate-template.mjs
 ```

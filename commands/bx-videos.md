@@ -8,7 +8,7 @@ description: "Video search via `bx videos`. Use for conference talks, tutorials,
 Use the **brave-videos-search** skill (or the **bx** skill) to find videos for:
 $ARGUMENTS
 
-Default invocation: `bx videos "$ARGUMENTS"`. Pull `results[].url`,
+Default invocation: `bx videos "<query>"`. Pull `results[].url`,
 `results[].video.duration`, `results[].video.creator`, and
 `results[].video.views`. Add `--freshness pw` (or `pd`/`pm`/`py`) when the
 user wants recent talks or release videos.

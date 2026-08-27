@@ -16,7 +16,7 @@ If `$ARGUMENTS` is empty, use the user's query.
 ```bash
 curl -fsSL "https://api.search.brave.com/res/v1/news/search" \
   -H "X-Subscription-Token: ${BRAVE_API_KEY}" \
-  -G --data-urlencode "q=$ARGUMENTS" \
+  -G --data-urlencode "q=your query" \
   --data-urlencode "freshness=pw" \
   --data-urlencode "count=20"
 ```
@@ -68,7 +68,7 @@ News answers should include the publication date in the citation: `[Headline](UR
 
 ## If `bx`, `curl`, or the API key is unavailable
 
-1. Prefer `bx` when it is on PATH (`bx news "$ARGUMENTS"`).
+1. Prefer `bx` when it is on PATH (`bx news "query"`).
 2. If `bx` is missing, use this skill's `curl` call with `BRAVE_API_KEY`.
 3. If neither can authenticate, **stop**. Tell the user to run
    `/bx-setup` (then `/bx-set-key` if the CLI is installed). See

@@ -8,7 +8,7 @@ description: "Recent news with freshness filtering via `bx news`. Usage: /bx-new
 Use the **brave-news-search** skill (or the **bx** skill) to fetch recent news for:
 $ARGUMENTS
 
-Default invocation: `bx news "$ARGUMENTS" --freshness pw`. Tune freshness
+Default invocation: `bx news "<query>" --freshness pw`. Tune freshness
 based on what the user asked for:
 
 - `pd` — past day (breaking news, security advisories)

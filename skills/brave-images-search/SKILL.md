@@ -20,7 +20,7 @@ Image search is niche for a coding agent. Reach for it only when the user explic
 ```bash
 curl -fsSL "https://api.search.brave.com/res/v1/images/search" \
   -H "X-Subscription-Token: ${BRAVE_API_KEY}" \
-  -G --data-urlencode "q=$ARGUMENTS" \
+  -G --data-urlencode "q=your query" \
   --data-urlencode "count=20"
 ```
 
@@ -61,7 +61,7 @@ Always cite the source page (`results[].url`) as `[Title](URL)`, not just the im
 
 ## If `bx`, `curl`, or the API key is unavailable
 
-1. Prefer `bx` when it is on PATH (`bx images "$ARGUMENTS"`).
+1. Prefer `bx` when it is on PATH (`bx images "query"`).
 2. If `bx` is missing, use this skill's `curl` call with `BRAVE_API_KEY`.
 3. If neither can authenticate, **stop**. Tell the user to run
    `/bx-setup` (then `/bx-set-key` if the CLI is installed). See

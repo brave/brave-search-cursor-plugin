@@ -13,7 +13,7 @@ If `$ARGUMENTS` is empty, use the user's query.
 
 ## When to pick this skill
 
-Use when the user wants a finished answer, not raw context for the agent to reason over. For RAG/grounding prefer `brave-llm-context`. For raw ranked hits use `bx web`. If `bx` is on PATH, `bx answers "$ARGUMENTS"` calls this same endpoint with simpler flags.
+Use when the user wants a finished answer, not raw context for the agent to reason over. For RAG/grounding prefer `brave-llm-context`. For raw ranked hits use `bx web`. If `bx` is on PATH, `bx answers "query"` calls this same endpoint with simpler flags.
 
 ## Two modes
 
@@ -36,7 +36,7 @@ Constraints to remember:
 curl -fsSL -X POST "https://api.search.brave.com/res/v1/chat/completions" \
   -H "Content-Type: application/json" \
   -H "X-Subscription-Token: ${BRAVE_API_KEY}" \
-  -d "$(jq -n --arg q "$ARGUMENTS" '{
+  -d "$(jq -n --arg q "your question" '{
     model: "brave",
     stream: false,
     messages: [{role: "user", content: $q}]
@@ -52,7 +52,7 @@ curl -fsSL -X POST "https://api.search.brave.com/res/v1/chat/completions" \
   -H "Content-Type: application/json" \
   -H "X-Subscription-Token: ${BRAVE_API_KEY}" \
   -N --max-time 360 \
-  -d "$(jq -n --arg q "$ARGUMENTS" '{
+  -d "$(jq -n --arg q "your question" '{
     model: "brave",
     stream: true,
     enable_research: true,
@@ -91,7 +91,7 @@ Single-search: surface inline citations from the response. Research: the `<answe
 
 ## If `bx`, `curl`, or the API key is unavailable
 
-Prefer `bx` when it is on PATH (`bx answers "$ARGUMENTS"`). If `bx` is
+Prefer `bx` when it is on PATH (`bx answers "query"`). If `bx` is
 missing, use this skill's `curl` call with `BRAVE_API_KEY` on the Answers
 plan.
 

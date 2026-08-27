@@ -20,14 +20,14 @@ Before searching, clean up the user's input:
 ## Search
 
 ```bash
-bx "$ARGUMENTS" --threshold strict --max-tokens 4096
+bx "<error>" --threshold strict --max-tokens 4096
 ```
 
 If results are thin, broaden in this order:
 
 1. Drop the framework keyword.
 2. Drop `--threshold strict` (back to balanced).
-3. Try `bx web "$ARGUMENTS" --result-filter discussions` to surface
+3. Try `bx web "<error>" --result-filter discussions` to surface
    forum threads (Stack Overflow, GitHub discussions often have the fix).
 4. Allowlist canonical sources, e.g. `--include-site docs.python.org
    --include-site github.com`.

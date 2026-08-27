@@ -20,7 +20,7 @@ Reach for this when the user explicitly wants video content — conference talks
 ```bash
 curl -fsSL "https://api.search.brave.com/res/v1/videos/search" \
   -H "X-Subscription-Token: ${BRAVE_API_KEY}" \
-  -G --data-urlencode "q=$ARGUMENTS" \
+  -G --data-urlencode "q=your query" \
   --data-urlencode "count=20"
 ```
 
@@ -63,7 +63,7 @@ Cite as `[Title — Creator (duration)](URL)` from the search output only. End w
 
 ## If `bx`, `curl`, or the API key is unavailable
 
-1. Prefer `bx` when it is on PATH (`bx videos "$ARGUMENTS"`).
+1. Prefer `bx` when it is on PATH (`bx videos "query"`).
 2. If `bx` is missing, use this skill's `curl` call with `BRAVE_API_KEY`.
 3. If neither can authenticate, **stop**. Tell the user to run
    `/bx-setup` (then `/bx-set-key` if the CLI is installed). See

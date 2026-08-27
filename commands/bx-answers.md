@@ -8,7 +8,7 @@ description: "AI-grounded answer with citations via `bx answers --no-stream` (Br
 Use the **brave-answers** skill (or the **bx** skill, whichever is available) to get
 a synthesized AI answer with citations for: $ARGUMENTS
 
-Default invocation: `bx answers "$ARGUMENTS" --no-stream`. The answer is at
+Default invocation: `bx answers "<question>" --no-stream`. The answer is at
 `.choices[0].message.content`; surface inline citations alongside the answer.
 
 If the request reads like a deep-research topic (multi-source comparison,

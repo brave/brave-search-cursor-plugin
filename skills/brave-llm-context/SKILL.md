@@ -13,14 +13,14 @@ If `$ARGUMENTS` is empty, use the user's query.
 
 ## When to pick this skill
 
-This is the right skill when _the agent_ will reason over the web content — RAG, agent tool calls, fact-checking, doc lookup. Use `bx web` for raw ranked hits, `brave-answers` for an end-to-end synthesized answer. If `bx` is on PATH, `bx "$ARGUMENTS"` calls this same endpoint with sensible defaults.
+This is the right skill when _the agent_ will reason over the web content — RAG, agent tool calls, fact-checking, doc lookup. Use `bx web` for raw ranked hits, `brave-answers` for an end-to-end synthesized answer. If `bx` is on PATH, `bx "query"` calls this same endpoint with sensible defaults.
 
 ## Canonical call
 
 ```bash
 curl -fsSL "https://api.search.brave.com/res/v1/llm/context" \
   -H "X-Subscription-Token: ${BRAVE_API_KEY}" \
-  -G --data-urlencode "q=$ARGUMENTS"
+  -G --data-urlencode "q=your query"
 ```
 
 POST is also supported (same fields as JSON body) — useful for long queries or multi-line goggles.
@@ -83,7 +83,7 @@ Every fact pulled from a snippet gets `[Title](URL)` — only cite URLs present 
 
 ## If `bx`, `curl`, or the API key is unavailable
 
-1. Prefer `bx` when it is on PATH (`bx "$ARGUMENTS"`).
+1. Prefer `bx` when it is on PATH (`bx "query"`).
 2. If `bx` is missing, use this skill's `curl` call with `BRAVE_API_KEY`.
 3. If neither can authenticate, **stop**. Tell the user to run
    `/bx-setup` (then `/bx-set-key` if the CLI is installed). See

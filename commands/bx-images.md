@@ -8,7 +8,7 @@ description: "Image search via `bx images`. Use for diagrams, screenshots, logos
 Use the **brave-images-search** skill (or the **bx** skill) to find images for:
 $ARGUMENTS
 
-Default invocation: `bx images "$ARGUMENTS" --count 20`. Pull
+Default invocation: `bx images "<query>" --count 20`. Pull
 `results[].url` (source page — cite this) and `results[].properties.url`
 (the image). Prefer `confidence === "high"` when the list is noisy.
 

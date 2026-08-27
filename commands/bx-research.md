@@ -24,7 +24,7 @@ chat.
 **macOS / Linux / WSL:**
 
 ```bash
-bx --timeout 600 answers "$ARGUMENTS" --enable-research > "${TMPDIR:-/tmp}/$FILENAME.ndjson"
+bx --timeout 600 answers "<topic>" --enable-research > "${TMPDIR:-/tmp}/$FILENAME.ndjson"
 jq -rj '.choices[0].delta.content // empty' "${TMPDIR:-/tmp}/$FILENAME.ndjson" \
   > "${TMPDIR:-/tmp}/$FILENAME.txt"
 ```
@@ -32,7 +32,7 @@ jq -rj '.choices[0].delta.content // empty' "${TMPDIR:-/tmp}/$FILENAME.ndjson" \
 **Windows (PowerShell):**
 
 ```powershell
-bx --timeout 600 answers "$ARGUMENTS" --enable-research > "$env:TEMP\$FILENAME.ndjson"
+bx --timeout 600 answers "<topic>" --enable-research > "$env:TEMP\$FILENAME.ndjson"
 jq -rj '.choices[0].delta.content // empty' "$env:TEMP\$FILENAME.ndjson" > "$env:TEMP\$FILENAME.txt"
 ```
 
