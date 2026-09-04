@@ -5,11 +5,9 @@ description: First-run setup for the Brave Search plugin. Install bx and set BRA
 
 # /bx-setup
 
-Walk the user through first-run. **One key, one env name:** `BRAVE_API_KEY`.
-
-| Path               | How it gets the key                           |
-| ------------------ | --------------------------------------------- |
-| `bx` / curl skills | Shell `BRAVE_API_KEY`, or `bx config set-key` |
+Walk the user through first-run. **One key, one env name:** `BRAVE_API_KEY` —
+set it in the shell, or run `bx config set-key`. Both the `bx` commands and the
+`curl` skills read it.
 
 Get a key at <https://api-dashboard.search.brave.com/app/keys> if they do not have one.
 
@@ -19,18 +17,22 @@ Follow [`/bx-install`](bx-install.md). Skip if `bx --version` already works.
 
 ## Step 2 — CLI key
 
-If `BRAVE_API_KEY` is already set in the environment (`[ -n "$BRAVE_API_KEY" ]`),
-skip this step — `bx` will use it.
+Check whether a key is already configured by using one:
 
+```bash
+bx web "test" --count 1
+```
+
+Exit 0 → a key is set (env var, config file, wherever) and this step is done.
 Otherwise follow [`/bx-set-key`](bx-set-key.md) to write the `bx` config file.
 
 ## Step 3 — Confirm
 
-Run `/bx-status` (or follow it inline):
+Run `/bx-status` (or re-run the smoke test above).
 
-- CLI: `bx web "test" --count 1` exits 0.
-
-If that fails, see [`docs/api-key-setup.md`](../docs/api-key-setup.md).
+If it fails, read stderr rather than the exit code — an invalid key exits **1**
+(not 3) with `subscription token invalid (422)`. See
+[`docs/api-key-setup.md`](../docs/api-key-setup.md).
 
 If `/bx-install` failed with a sandbox / permission / network error, tell
 the user to re-run it with sandbox mode disabled, or to install `bx` in

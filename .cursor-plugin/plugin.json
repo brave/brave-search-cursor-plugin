@@ -1,6 +1,6 @@
 {
   "name": "brave-search",
-  "displayName": "Brave Search",
+  "displayName": "Brave Search API",
   "version": "1.0.0",
   "description": "Live web search from Brave's independent index — token-budgeted RAG, cited answers, deep research, news, images, and videos via the bx CLI.",
   "author": {

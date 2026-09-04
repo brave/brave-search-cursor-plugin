@@ -11,8 +11,8 @@ news, images, and videos — all through Brave's
 | -------------------------------- | --------------------- | -------------------------------------------------------------------- |
 | **All-in-one CLI (recommended)** | `bx`                  | `/bx-search`, `/bx-answers`, `/bx-research`, `/bx-news`, `/bx-debug` |
 | **RAG / LLM grounding**          | `brave-llm-context`   | (covered by `/bx-search`)                                            |
-| **AI answers (single-shot)**     | `brave-answers`       | `/bx-answers`                                                        |
-| **Deep research**                | `brave-answers`       | `/bx-research`                                                       |
+| **AI answers (single-shot)**     | `brave-answers`       | `/bx-answers` — one search, ~5–30s                                   |
+| **Deep research**                | `brave-answers`       | `/bx-research` — same skill, `--enable-research`, up to ~5 min       |
 | **News**                         | `brave-news-search`   | `/bx-news`                                                           |
 | **Images**                       | `brave-images-search` | `/bx-images`                                                         |
 | **Videos**                       | `brave-videos-search` | `/bx-videos`                                                         |
@@ -26,9 +26,9 @@ blocking other search tools.
 
 1. Get a Brave Search API key at <https://api-dashboard.search.brave.com/app/keys>. All plans
    include $5/month of free credits.
-2. Run `/bx-setup` from chat. One env name, `BRAVE_API_KEY`:
-   - Set `BRAVE_API_KEY` in the environment, or run `bx config set-key`, for
-     `/bx-*` and curl. See [`docs/api-key-setup.md`](docs/api-key-setup.md).
+2. Run `/bx-setup` from chat. One env name, `BRAVE_API_KEY`, covers both `/bx-*`
+   and curl — set it in the environment or run `bx config set-key`. See
+   [`docs/api-key-setup.md`](docs/api-key-setup.md).
 3. Or install `bx` yourself, then `/bx-set-key`:
 
    ```bash
@@ -141,7 +141,7 @@ Per the [Cursor plugins reference](https://cursor.com/docs/reference/plugins):
 ## Credits
 
 - Skills are derived from [`brave/brave-search-skills`](https://github.com/brave/brave-search-skills) (MIT, © Brave Software).
-- The `bx` CLI lives at [`brave/brave-search-cli`](https://github.com/brave/brave-search-cli) (MIT, © Brave Software).
+- The `bx` CLI lives at [`brave/brave-search-cli`](https://github.com/brave/brave-search-cli) (MPL-2.0, © Brave Software).
 
 ## License
 

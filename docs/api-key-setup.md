@@ -8,7 +8,10 @@ One environment variable, `BRAVE_API_KEY`, authenticates every path:
 | `bx` slash commands     | Shell env, or `bx config set-key` |
 | Raw-API skills (`curl`) | Shell env (`${BRAVE_API_KEY}`)    |
 
-`bx` also accepts the older name `BRAVE_SEARCH_API_KEY`; this plugin uses `BRAVE_API_KEY` only.
+> `bx` also reads its own native `BRAVE_SEARCH_API_KEY`, which wins if both
+> are set. If you already export that one, everything below works unchanged —
+> this plugin documents `BRAVE_API_KEY` because a single name covers the CLI
+> and the `curl` skills alike.
 
 ## Get a key
 
@@ -29,25 +32,30 @@ it by hand:
 
 ### Option 1 — `bx config set-key` (recommended)
 
-The cleanest option if you mostly use the `/bx-*` slash commands. The key
-goes into a per-OS config file (not an env var) and never enters shell
-history:
+The cleanest option if you mostly use the `/bx-*` slash commands. The key goes
+into a per-OS config file (not an env var) and never enters shell history:
 
 ```bash
-bx config set-key                                      # interactive — hidden prompt, no shell history
-bx config show-key >/dev/null 2>&1 && echo "key set"   # presence check (doesn't print the key)
+bx config set-key                                      # interactive — prompts, no shell history
+bx config show-key >/dev/null 2>&1 && echo "key set"   # presence check
 bx config path                                         # see where the config lives
 ```
 
-> Avoid running `bx config show-key` directly — its stdout is the plaintext
-> key. Safe in your own terminal, but if an AI agent runs it the key lands
-> in the agent's chat context and, from there, in the model provider's logs.
+> **The interactive prompt echoes the key as you type it** — the CLI prints
+> "(input will be visible)" before prompting. That keeps the key out of shell
+> history and `ps`, but not out of terminal scrollback, terminal logs, or a
+> screen share. If the key must never be displayed, use Option 2 or 3 below.
+> Never pass it as an argument (`bx config set-key <KEY>`) — that does land in
+> shell history.
 
-Config locations:
+`bx config show-key` prints a **masked** key (e.g. `BSAH...TppZ`), not the full
+secret. Still redirect it to `/dev/null` when an AI agent runs the check, so
+even the masked prefix stays out of the agent's context.
 
-- Linux: `~/.config/brave-search/config.json`
-- macOS: `~/Library/Application Support/brave-search/config.json`
-- Windows: `%APPDATA%\brave-search\config.json`
+The config file is written `0600` inside a `0700` directory. Run
+`bx config path` for its exact location — `brave-search/config.json` under the
+platform config dir (`~/.config` on Linux, `~/Library/Application Support` on
+macOS, `%APPDATA%` on Windows).
 
 ### Option 2 — `direnv` (directory-scoped, auto-loads/unloads)
 
@@ -101,13 +109,13 @@ A non-empty title means you're good.
 
 ## Troubleshooting
 
-| Symptom                                    | Likely cause                                   | Fix                                                                    |
-| ------------------------------------------ | ---------------------------------------------- | ---------------------------------------------------------------------- |
-| `error: missing API key` from `bx`         | No key set anywhere                            | Run `bx config set-key` or `export BRAVE_API_KEY=...`                  |
-| HTTP 401 / 403, exit code 3                | Bad / expired key                              | Rotate at <https://api-dashboard.search.brave.com/app/keys> and re-set |
-| HTTP 403 "Option not in plan"              | Endpoint requires a higher tier (e.g. Answers) | Upgrade your plan                                                      |
-| HTTP 429, exit code 4                      | Rate limited                                   | Back off and retry, or upgrade plan                                    |
-| `bx` works in terminal, not in Cursor chat | Cursor was launched before the env var was set | Fully quit Cursor and relaunch from a fresh shell                      |
+| Symptom                                                | Likely cause                                        | Fix                                                                    |
+| ------------------------------------------------------ | --------------------------------------------------- | ---------------------------------------------------------------------- |
+| `No API key found` from `bx`, exit 1                   | No key set anywhere                                 | Run `bx config set-key` or `export BRAVE_API_KEY=...`                  |
+| `subscription token invalid (422)`, **exit 1**          | Bad / expired key — note this is exit 1, not 3      | Rotate at <https://api-dashboard.search.brave.com/app/keys> and re-set |
+| HTTP 401 / 403, exit code 3                            | Key recognized but not permitted for this endpoint  | Check the plan covers the endpoint (e.g. Answers)                      |
+| HTTP 429, exit code 4                                  | Rate limited                                        | Back off and retry, or upgrade plan                                    |
+| `bx` works in terminal, not in Cursor chat             | Cursor was launched before the env var was set      | Fully quit Cursor and relaunch from a fresh shell                      |
 
 ## Related docs
 

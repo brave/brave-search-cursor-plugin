@@ -178,16 +178,30 @@ uninstall() {
   echo "Reload Cursor (Cmd/Ctrl+Shift+P → Developer: Reload Window) to apply."
 }
 
+# `.env*` and `.envrc` are gitignored, so they exist only on a developer's
+# machine — and docs/api-key-setup.md suggests putting the API key in `.envrc`.
+# Copying one would carry a plaintext key out to a path the ignore rules were
+# never protecting.
+COPY_EXCLUDES=(.git .claude .github node_modules .env '.env.*' .envrc)
+
 copy_plugin_files() {
   mkdir -p "$PLUGIN_DIR"
+
+  local excludes=() pattern
   if command -v rsync >/dev/null 2>&1; then
-    rsync -a --delete --exclude '.git/' "$SCRIPT_DIR/" "$PLUGIN_DIR/"
+    for pattern in "${COPY_EXCLUDES[@]}"; do
+      excludes+=(--exclude "$pattern")
+    done
+    rsync -a --delete "${excludes[@]}" "$SCRIPT_DIR/" "$PLUGIN_DIR/"
     return
   fi
 
+  for pattern in "${COPY_EXCLUDES[@]}"; do
+    excludes+=("--exclude=$pattern")
+  done
   local tmp
   tmp="$(mktemp -d "${PLUGIN_DIR}.tmp.XXXXXX")"
-  tar -C "$SCRIPT_DIR" --exclude=.git -cf - . | tar -C "$tmp" -xf -
+  tar -C "$SCRIPT_DIR" "${excludes[@]}" -cf - . | tar -C "$tmp" -xf -
   rm -rf "$PLUGIN_DIR"
   mv "$tmp" "$PLUGIN_DIR"
 }

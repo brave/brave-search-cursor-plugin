@@ -11,7 +11,7 @@ $ARGUMENTS
 ## Step 1: Pick a filename
 
 Choose a short, descriptive filename based on the topic (lowercase + hyphens),
-e.g. `react-19-vs-18`, `axum-jwt-auth-2026`. Use it as `$FILENAME` below.
+e.g. `react-19-vs-18`, `axum-jwt-auth-2026`. Substitute it for `<name>` below.
 
 ## Step 2: Warn and run
 
@@ -21,19 +21,28 @@ Research **requires streaming** (`enable_research` is rejected with
 `--no-stream`). Redirect the NDJSON stream to a file so it does not flood
 chat.
 
+Write into a fresh `mktemp -d` directory rather than a fixed path like
+`/tmp/<name>.ndjson`. On a shared machine `/tmp` is world-writable and a `>`
+redirect follows a symlink, so a predictable name lets another local user
+choose what gets overwritten.
+
 **macOS / Linux / WSL:**
 
 ```bash
-bx --timeout 600 answers "<topic>" --enable-research > "${TMPDIR:-/tmp}/$FILENAME.ndjson"
-jq -rj '.choices[0].delta.content // empty' "${TMPDIR:-/tmp}/$FILENAME.ndjson" \
-  > "${TMPDIR:-/tmp}/$FILENAME.txt"
+outdir="$(mktemp -d)"   # private 0700 dir, unpredictable name
+bx --timeout 600 answers "<topic>" --enable-research > "$outdir/<name>.ndjson"
+jq -rj '.choices[0].delta.content // empty' "$outdir/<name>.ndjson" \
+  > "$outdir/<name>.txt"
+echo "$outdir/<name>.txt"
 ```
 
 **Windows (PowerShell):**
 
 ```powershell
-bx --timeout 600 answers "<topic>" --enable-research > "$env:TEMP\$FILENAME.ndjson"
-jq -rj '.choices[0].delta.content // empty' "$env:TEMP\$FILENAME.ndjson" > "$env:TEMP\$FILENAME.txt"
+$outdir = (New-Item -ItemType Directory -Path (Join-Path $env:TEMP ([guid]::NewGuid()))).FullName
+bx --timeout 600 answers "<topic>" --enable-research > "$outdir\<name>.ndjson"
+jq -rj '.choices[0].delta.content // empty' "$outdir\<name>.ndjson" > "$outdir\<name>.txt"
+Write-Output "$outdir\<name>.txt"
 ```
 
 The reconstructed file contains tagged sections. For the user-facing reply:

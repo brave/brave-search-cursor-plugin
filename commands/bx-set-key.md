@@ -1,30 +1,31 @@
 ---
 name: bx-set-key
-description: Configure the Brave Search API key for the `bx` CLI without leaking it into shell history. Uses `bx config set-key` interactively, with direnv / shell-profile fallbacks documented.
+description: Configure the Brave Search API key for the `bx` CLI, keeping it out of shell history and process listings. Uses `bx config set-key` interactively, with direnv / shell-profile fallbacks documented.
 ---
 
 # /bx-set-key
 
-Configure the Brave Search API key the `bx` CLI uses for authentication. Sets
-the key without exposing it in shell history or process listings.
+Configure the Brave Search API key the `bx` CLI uses for authentication. Keeps
+the key out of shell history and process listings.
 
-Skip this command if `BRAVE_API_KEY` is already set in the environment —
-`bx` reads that name directly. This writes the `bx` config file.
+Skip this command if `bx web "test" --count 1` already exits 0 — a key is
+configured somewhere and nothing needs changing. This writes the `bx` config
+file.
 
 ## Steps
 
 1. **Verify install.** Run `bx --version`. If it fails, run `/bx-install`
    first and stop.
-2. **Check whether a key is already set** without printing it:
+2. **Check whether a key is already set:**
 
    ```bash
    bx config show-key >/dev/null 2>&1 && echo "key already set" || echo "no key set"
    ```
 
-   Never run `bx config show-key` directly — its stdout is the plaintext key,
-   which would land in this chat's context (and from there in the model
-   provider's logs). If the check reports "key already set", ask the user
-   whether to overwrite before proceeding.
+   `show-key` prints a masked key (`BSAH...TppZ`), not the full secret, but
+   redirect it anyway so even the masked prefix stays out of this chat. If the
+   check reports "key already set", ask the user whether to overwrite before
+   proceeding.
 
 3. **Run interactive set-key:**
 
@@ -32,24 +33,36 @@ Skip this command if `BRAVE_API_KEY` is already set in the environment —
    bx config set-key
    ```
 
-   No argument — the CLI prompts for the key on a hidden TTY input. This
-   avoids both shell history (`history`) and process listings (`ps aux`).
-   The key is written to the config file (run `bx config path` to see the
-   exact location):
-   - Linux: `~/.config/brave-search/config.json`
-   - macOS: `~/Library/Application Support/brave-search/config.json`
-   - Windows: `%APPDATA%\brave-search\config.json`
+   No argument — the CLI prompts for the key. **The key is echoed to the
+   terminal as it is typed** (the CLI says so itself: "input will be visible").
+   That keeps it out of shell history and `ps`, but not out of terminal
+   scrollback, terminal logs, or a screen share. If the user needs the key
+   never displayed, have them export `BRAVE_API_KEY` instead (step 3 of
+   "Alternatives" below) and skip this command.
+
+   Do not pass the key as an argument (`bx config set-key <KEY>`) — that form
+   lands in shell history.
+
+   The key is written to the config file; run `bx config path` for the exact
+   location (`brave-search/config.json` under the platform config dir). It is
+   written `0600` in a `0700` directory.
 
 4. **Verify** with the same `bx config show-key >/dev/null 2>&1` presence
-   check (do **not** print the key). Then sanity-check connectivity:
+   check. Then sanity-check connectivity:
 
    ```bash
    bx web "test" --count 1
    ```
 
    - Exit 0 → working.
-   - Exit 3 → bad/expired key. Have the user re-issue at
+   - Exit 1 → most bad-key cases land here. The API returns **422** for an
+     invalid subscription token, which maps to exit 1, and stderr reads
+     `subscription token invalid (422)`. Read the message rather than assuming
+     from the code: `No API key found` means nothing is configured, while
+     `subscription token invalid` means the user should re-issue at
      <https://api-dashboard.search.brave.com/app/keys> and retry.
+   - Exit 3 → 401/403. The key is recognized but not permitted — usually the
+     endpoint needs a different plan.
    - Exit 4 → rate-limited (key works, plan is over its quota).
 
 ## Alternatives the user may prefer
@@ -81,6 +94,6 @@ matrix (Cursor, Codex, Claude Code, Docker / CI, etc.).
 
 - Get a key at <https://api-dashboard.search.brave.com/app/keys>. All plans include $5/month of
   free credits.
-- Resolution priority in `bx`: `--api-key` flag > `BRAVE_API_KEY` env >
-  config file > interactive prompt. Prefer the config file or env var over
-  the CLI flag — flag values show up in `ps`.
+- Resolution priority in `bx`: env var > config file > interactive prompt.
+  Prefer either of the first two over the `--api-key` flag — flag values show
+  up in `ps`.

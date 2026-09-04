@@ -16,39 +16,35 @@ command -v bx && bx --version
 - Missing → tell the user to run `/bx-install` (then `/bx-setup`). Stop.
 - Present → continue.
 
-## 2. CLI key (presence only)
+## 2. Key + smoke test
 
-Skip if `bx` is missing.
-
-```bash
-if [ -n "$BRAVE_API_KEY" ]; then
-  echo "BRAVE_API_KEY is set in the environment"
-elif bx config show-key >/dev/null 2>&1; then
-  echo "bx config has a key (not printed)"
-else
-  echo "no CLI key"
-fi
-```
-
-Never run `bx config show-key` without redirecting stdout.
-
-If there is no CLI key, tell the user to run `/bx-set-key` or export `BRAVE_API_KEY`.
-
-## 3. CLI smoke test
-
-Only if `bx` is on PATH and a key is present:
+Skip if `bx` is missing. One command answers both "is a key configured?" and
+"does it work?":
 
 ```bash
 bx web "test" --count 1
 ```
 
-| Exit | Meaning        | Next step                                                                           |
-| ---- | -------------- | ----------------------------------------------------------------------------------- |
-| 0    | Working        | CLI path is good                                                                    |
-| 3    | Auth (401/403) | Rotate the key at https://api-dashboard.search.brave.com/app/keys and `/bx-set-key` |
-| 4    | Rate limited   | Key works; wait or upgrade plan                                                     |
-| 5    | Network/server | Retry; check connectivity to api.search.brave.com                                   |
+Don't probe for a key by name first. `bx` accepts a key from an env var, its
+config file, or a legacy key file, and this call exercises the whole chain — so
+it passes for users whose key arrives by a route this doc never mentions.
 
-## 4. Report
+**Read stderr, not just the exit code** — the most common failure, an invalid
+key, exits **1** rather than 3, because the API reports it as HTTP 422.
 
-Give a short pass/fail for CLI, CLI key, and CLI smoke test. Point at [`docs/api-key-setup.md`](../docs/api-key-setup.md) for anything that failed.
+| Exit | Meaning                                | Next step                                                                                     |
+| ---- | -------------------------------------- | --------------------------------------------------------------------------------------------- |
+| 0    | Working                                | CLI path is good                                                                              |
+| 1    | Request made, result unusable          | Match stderr: `subscription token invalid (422)` → bad/expired key, rotate at https://api-dashboard.search.brave.com/app/keys and `/bx-set-key`. `No API key found` → no key configured. Otherwise a query/parameter problem. |
+| 2    | Usage error (bad flags)                | Fix the command                                                                               |
+| 3    | Auth/permission (401/403)              | Key is recognized but not permitted — check the plan covers this endpoint                      |
+| 4    | Rate limited (429)                     | Key works; wait or upgrade plan                                                               |
+| 5    | Network/server (5xx)                   | Retry; check connectivity to api.search.brave.com                                             |
+| 127  | npm launcher could not start `bx`      | Reinstall via `/bx-install`; check platform support                                           |
+
+On `No API key found`, tell the user to run `/bx-set-key` or export
+`BRAVE_API_KEY`.
+
+## 3. Report
+
+Give a short pass/fail for the CLI install and the search itself. Point at [`docs/api-key-setup.md`](../docs/api-key-setup.md) for anything that failed.
