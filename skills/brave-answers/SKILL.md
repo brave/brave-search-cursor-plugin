@@ -1,7 +1,7 @@
 ---
 name: brave-answers
 description: "Synthesizes a cited answer from Brave's OpenAI-compatible chat completions. Single-search is fast; enable_research runs multi-search deep research. Use when the user wants a finished explanation, comparison, or researched report rather than raw sources. Prefer `bx answers` when the CLI is on PATH."
-allowed-tools: Bash(curl:*), Bash(bx:*), Bash(jq:*)
+allowed-tools: Bash(echo:*), Bash(curl:*), Bash(bx:*), Bash(jq:*)
 compatibility: Requires `curl`, a Brave Search API key (`BRAVE_API_KEY`) on the Answers plan, and network access to api.search.brave.com.
 ---
 
@@ -33,9 +33,9 @@ Constraints to remember:
 ### Single-search, blocking
 
 ```bash
-curl -fsSL -X POST "https://api.search.brave.com/res/v1/chat/completions" \
+echo "X-Subscription-Token: $BRAVE_API_KEY" |
+curl -H @- -fsSL -X POST "https://api.search.brave.com/res/v1/chat/completions" \
   -H "Content-Type: application/json" \
-  -H "X-Subscription-Token: ${BRAVE_API_KEY}" \
   -d "$(jq -n --arg q "your question" '{
     model: "brave",
     stream: false,
@@ -49,9 +49,9 @@ Pull the answer from `.choices[0].message.content`.
 
 ```bash
 outdir="$(mktemp -d)"   # private 0700 dir, unpredictable name
-curl -fsSL -X POST "https://api.search.brave.com/res/v1/chat/completions" \
+echo "X-Subscription-Token: $BRAVE_API_KEY" |
+curl -H @- -fsSL -X POST "https://api.search.brave.com/res/v1/chat/completions" \
   -H "Content-Type: application/json" \
-  -H "X-Subscription-Token: ${BRAVE_API_KEY}" \
   -N --max-time 360 \
   -d "$(jq -n --arg q "your question" '{
     model: "brave",

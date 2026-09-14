@@ -1,7 +1,7 @@
 ---
 name: brave-llm-context
 description: "Returns pre-extracted, token-budgeted web content (text, tables, code) from Brave Search for RAG and agent reasoning. Use when grounding a claim, looking up documentation, fact-checking, or gathering sources the agent will reason over. Prefer brave-answers / bx answers for a finished cited explanation. Prefer the bx CLI when it is on PATH."
-allowed-tools: Bash(curl:*), Bash(bx:*)
+allowed-tools: Bash(echo:*), Bash(curl:*), Bash(bx:*)
 compatibility: Requires `curl`, a Brave Search API key (`BRAVE_API_KEY`), and network access to api.search.brave.com.
 ---
 
@@ -18,8 +18,8 @@ This is the right skill when _the agent_ will reason over the web content — RA
 ## Canonical call
 
 ```bash
-curl -fsSL "https://api.search.brave.com/res/v1/llm/context" \
-  -H "X-Subscription-Token: ${BRAVE_API_KEY}" \
+echo "X-Subscription-Token: $BRAVE_API_KEY" |
+curl -H @- -fsSL "https://api.search.brave.com/res/v1/llm/context" \
   -G --data-urlencode "q=your query"
 ```
 

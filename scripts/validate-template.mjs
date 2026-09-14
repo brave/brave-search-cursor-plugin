@@ -283,6 +283,43 @@ async function validateComponentDirs(repoRoot) {
   }
 }
 
+// A `-H "X-Subscription-Token: $KEY"` header is expanded by the shell before
+// execve, so the plaintext key ends up in curl's argv — and /proc/<pid>/cmdline
+// is world-readable. Documented calls must pipe the header into `curl -H @-`
+// (stdin) instead.
+const argvSecretPattern = /-H\s+["']?\s*X-Subscription-Token/i;
+
+async function validateNoSecretsInArgv(repoRoot) {
+  const roots = ["skills", "commands", "docs", "rules", "README.md"];
+  for (const entry of roots) {
+    const target = path.join(repoRoot, entry);
+    if (!(await pathExists(target))) continue;
+    const stat = await fs.stat(target);
+    const files = stat.isDirectory() ? await walkFiles(target) : [target];
+    for (const f of files) {
+      if (![".md", ".mdc", ".markdown"].includes(path.extname(f).toLowerCase())) continue;
+      const lines = normalizeNewlines(await fs.readFile(f, "utf8")).split("\n");
+      // Only runnable snippets matter; prose and inline code may quote the
+      // bad pattern in order to warn against it.
+      let inFence = false;
+      lines.forEach((line, i) => {
+        if (/^\s*(```|~~~)/.test(line)) {
+          inFence = !inFence;
+          return;
+        }
+        if (inFence && argvSecretPattern.test(line)) {
+          addError(
+            `${path.relative(repoRoot, f)}:${i + 1} passes the API key in curl's argv ` +
+              `(-H "X-Subscription-Token: ..."), which is world-readable via ps / ` +
+              `/proc/<pid>/cmdline. Pipe the header in on stdin instead: ` +
+              `echo "X-Subscription-Token: $BRAVE_API_KEY" | curl -H @- ...`
+          );
+        }
+      });
+    }
+  }
+}
+
 function summarizeAndExit() {
   if (warnings.length) {
     console.log("Warnings:");
@@ -352,6 +389,7 @@ async function main() {
 
   await validateComponentDirs(repoRoot);
   await validateMcpVariables(repoRoot, manifest);
+  await validateNoSecretsInArgv(repoRoot);
 
   const skillsDir = path.join(repoRoot, "skills");
   if (await pathExists(skillsDir)) {

@@ -99,9 +99,9 @@ After configuring, smoke-test from a Cursor terminal:
 bx web "test" --count 1 | jq '.web.results[0].title'
 
 # Or directly against the API
-curl -s "https://api.search.brave.com/res/v1/web/search?q=test" \
+echo "X-Subscription-Token: $BRAVE_API_KEY" |
+curl -H @- -s "https://api.search.brave.com/res/v1/web/search?q=test" \
   -H "Accept: application/json" \
-  -H "X-Subscription-Token: ${BRAVE_API_KEY}" \
   | jq '.web.results[0].title'
 ```
 

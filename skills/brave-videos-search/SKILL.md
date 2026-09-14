@@ -1,7 +1,7 @@
 ---
 name: brave-videos-search
 description: "Returns videos with title, URL, duration, views, and creator from Brave Search. Use only when the user explicitly wants video content such as conference talks, tutorials, or demos. Prefer `bx videos` when the CLI is on PATH."
-allowed-tools: Bash(curl:*), Bash(bx:*)
+allowed-tools: Bash(echo:*), Bash(curl:*), Bash(bx:*)
 compatibility: Requires `curl`, a Brave Search API key (`BRAVE_API_KEY`), and network access to api.search.brave.com.
 ---
 
@@ -18,8 +18,8 @@ Reach for this when the user explicitly wants video content — conference talks
 ## Canonical call
 
 ```bash
-curl -fsSL "https://api.search.brave.com/res/v1/videos/search" \
-  -H "X-Subscription-Token: ${BRAVE_API_KEY}" \
+echo "X-Subscription-Token: $BRAVE_API_KEY" |
+curl -H @- -fsSL "https://api.search.brave.com/res/v1/videos/search" \
   -G --data-urlencode "q=your query" \
   --data-urlencode "count=20"
 ```
