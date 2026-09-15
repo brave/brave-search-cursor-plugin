@@ -30,9 +30,9 @@ Otherwise follow [`/bx-set-key`](bx-set-key.md) to write the `bx` config file.
 
 Run `/bx-status` (or re-run the smoke test above).
 
-If it fails, read stderr rather than the exit code — an invalid key exits **1**
-(not 3) with `subscription token invalid (422)`. See
-[`docs/api-key-setup.md`](../docs/api-key-setup.md).
+If it fails, read stderr rather than the exit code. [`/bx-status`](bx-status.md)
+has the exit-code table; [`docs/api-key-setup.md`](../docs/api-key-setup.md)
+covers key setup.
 
 If `/bx-install` failed with a sandbox / permission / network error, tell
 the user to re-run it with sandbox mode disabled, or to install `bx` in

@@ -11,7 +11,3 @@ Run the default `bx context` flow (`bx "<query>" --max-tokens 4096`) and pull
 results from `.grounding.generic[]`. Add `--include-site <domain>` if the
 user's request implies domain scoping (e.g. "search MDN for ...",
 "on docs.rs"). Add `--threshold strict` if results look too broad.
-
-Follow the bx skill's instructions exactly, including citation standards and
-the fallback contract: try `bx`, then the matching curl skill, then stop
-and point the user at `/bx-setup`.

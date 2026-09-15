@@ -16,16 +16,17 @@ file.
 
 1. **Verify install.** Run `bx --version`. If it fails, run `/bx-install`
    first and stop.
-2. **Check whether a key is already set:**
+2. **Check whether a key is already set** with the smoke test, not by probing
+   the config:
 
    ```bash
-   bx config show-key >/dev/null 2>&1 && echo "key already set" || echo "no key set"
+   bx web "test" --count 1
    ```
 
-   `show-key` prints a masked key (`BSAH...TppZ`), not the full secret, but
-   redirect it anyway so even the masked prefix stays out of this chat. If the
-   check reports "key already set", ask the user whether to overwrite before
-   proceeding.
+   Exit 0 means a key is already working — ask the user whether to overwrite
+   before proceeding. Don't use `bx config show-key` for this: it only knows
+   about the config file, so it reports "no API key configured" for a user
+   whose key comes from the environment.
 
 3. **Run interactive set-key:**
 
@@ -37,7 +38,7 @@ file.
    terminal as it is typed** (the CLI says so itself: "input will be visible").
    That keeps it out of shell history and `ps`, but not out of terminal
    scrollback, terminal logs, or a screen share. If the user needs the key
-   never displayed, have them export `BRAVE_API_KEY` instead (step 3 of
+   never displayed, have them export `BRAVE_API_KEY` instead (see
    "Alternatives" below) and skip this command.
 
    Do not pass the key as an argument (`bx config set-key <KEY>`) — that form
@@ -47,35 +48,27 @@ file.
    location (`brave-search/config.json` under the platform config dir). It is
    written `0600` in a `0700` directory.
 
-4. **Verify** with the same `bx config show-key >/dev/null 2>&1` presence
-   check. Then sanity-check connectivity:
+4. **Verify** by re-running the smoke test:
 
    ```bash
    bx web "test" --count 1
    ```
 
-   - Exit 0 → working.
-   - Exit 1 → most bad-key cases land here. The API returns **422** for an
-     invalid subscription token, which maps to exit 1, and stderr reads
-     `subscription token invalid (422)`. Read the message rather than assuming
-     from the code: `No API key found` means nothing is configured, while
-     `subscription token invalid` means the user should re-issue at
-     <https://api-dashboard.search.brave.com/app/keys> and retry.
-   - Exit 3 → 401/403. The key is recognized but not permitted — usually the
-     endpoint needs a different plan.
-   - Exit 4 → rate-limited (key works, plan is over its quota).
+   Exit 0 means the key works. Otherwise read stderr rather than guessing from
+   the code: `subscription token invalid` means re-issue the key at
+   <https://api-dashboard.search.brave.com/app/keys>, `No API key found` means
+   nothing is configured. [`/bx-status`](bx-status.md) has the full exit-code
+   table.
 
 ## Alternatives the user may prefer
 
 If they don't want a config file (e.g. ephemeral environments, CI), env-var
 based config also works — `bx` resolves `BRAVE_API_KEY` automatically:
 
-- **direnv** (directory-scoped, recommended for project use):
-
-  ```bash
-  echo 'export BRAVE_API_KEY="..."' >> .envrc
-  direnv allow
-  ```
+- **direnv** (directory-scoped, recommended for project use): have the user add
+  `export BRAVE_API_KEY="..."` to `.envrc` in their editor, then run
+  `direnv allow`. Don't write the key with a shell redirect — that puts it in
+  shell history, which is the thing this command exists to avoid.
 
 - **Shell profile** (`~/.zshrc` / `~/.bashrc`):
 
@@ -88,12 +81,14 @@ based config also works — `bx` resolves `BRAVE_API_KEY` automatically:
   spawned it).
 
 See [`docs/api-key-setup.md`](../docs/api-key-setup.md) for the full setup
-matrix (Cursor, Codex, Claude Code, Docker / CI, etc.).
+matrix (Cursor).
 
 ## Notes
 
 - Get a key at <https://api-dashboard.search.brave.com/app/keys>. All plans include $5/month of
   free credits.
-- Resolution priority in `bx`: env var > config file > interactive prompt.
-  Prefer either of the first two over the `--api-key` flag — flag values show
-  up in `ps`.
+- Resolution priority in `bx`, highest first: `--api-key` flag,
+  `BRAVE_SEARCH_API_KEY`, `BRAVE_API_KEY`, config file. So a config file
+  written by this command does **not** override an env var the user already
+  exports. Prefer the env var or the config file over `--api-key` — flag values
+  show up in `ps`.

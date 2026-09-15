@@ -58,7 +58,3 @@ Do **not** pass `--no-stream` here. Blocking mode returns
 
 Share an executive summary plus the full file path so the user can re-read
 it. Do NOT paste the entire NDJSON back into chat.
-
-Follow the brave-answers/bx skill instructions exactly, including citation
-standards and the fallback contract: try `bx`, then the matching curl skill,
-then stop and point the user at `/bx-setup`.

@@ -11,7 +11,3 @@ $ARGUMENTS
 Default invocation: `bx images "<query>" --count 20`. Pull
 `results[].url` (source page — cite this) and `results[].properties.url`
 (the image). Prefer `confidence === "high"` when the list is noisy.
-
-Follow the skill instructions exactly, including citation standards and the
-fallback contract: try `bx`, then the matching curl skill, then stop and
-point the user at `/bx-setup`.

@@ -2,14 +2,14 @@
 name: brave-images-search
 description: "Returns image results with source page URL, thumbnail, and dimensions from Brave Search. Use only when the user explicitly wants visual references — diagrams, screenshots, logos, or design inspiration. Prefer `bx images` when the CLI is on PATH."
 allowed-tools: Bash(echo:*), Bash(curl:*), Bash(bx:*)
-compatibility: Requires `curl`, a Brave Search API key (`BRAVE_API_KEY`), and network access to api.search.brave.com.
+compatibility: Requires `curl` 7.76+ (for `--fail-with-body`), a Brave Search API key (`BRAVE_API_KEY`), and network access to api.search.brave.com.
 ---
 
 # Image Search (Brave)
 
 Find images for: $ARGUMENTS
 
-If `$ARGUMENTS` is empty, use the user's query.
+If the line above still reads literally `$ARGUMENTS`, or is blank, use the user's latest request.
 
 ## When to pick this skill
 
@@ -19,7 +19,7 @@ Image search is niche for a coding agent. Reach for it only when the user explic
 
 ```bash
 echo "X-Subscription-Token: $BRAVE_API_KEY" |
-curl -H @- -fsSL "https://api.search.brave.com/res/v1/images/search" \
+curl -H @- --fail-with-body -sSL --max-redirs 0 "https://api.search.brave.com/res/v1/images/search" \
   -G --data-urlencode "q=your query" \
   --data-urlencode "count=20"
 ```

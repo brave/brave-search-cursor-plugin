@@ -12,7 +12,3 @@ Default invocation: `bx videos "<query>"`. Pull `results[].url`,
 `results[].video.duration`, `results[].video.creator`, and
 `results[].video.views`. Add `--freshness pw` (or `pd`/`pm`/`py`) when the
 user wants recent talks or release videos.
-
-Follow the skill instructions exactly, including citation standards and the
-fallback contract: try `bx`, then the matching curl skill, then stop and
-point the user at `/bx-setup`.

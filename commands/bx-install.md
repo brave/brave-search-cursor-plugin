@@ -49,8 +49,9 @@ Install or update the Brave Search CLI (`bx`) on the user's machine.
 4. **Verify** by running `bx --version`. If `bx: command not found`, the
    installer probably dropped the binary somewhere not on `$PATH` — surface
    the script's stdout/stderr so the user can see the install location, and
-   suggest adding it to `PATH` (e.g. `~/.local/bin` on Linux,
-   `/usr/local/bin` on macOS, `%USERPROFILE%\.bx\bin` on Windows).
+   suggest adding it to `PATH`. The default is `~/.local/bin` on Linux and
+   macOS, `%USERPROFILE%\.local\bin` on Windows (both overridable with
+   `BX_INSTALL_DIR`).
 
    If the installer fails with a sandbox / permission / network error, tell
    the user to re-run `/bx-install` with sandbox mode disabled, or to run

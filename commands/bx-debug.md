@@ -16,6 +16,9 @@ Before searching, clean up the user's input:
   drop request IDs, trace IDs).
 - Add the language / runtime / framework as a keyword if known
   (e.g. `"Python ..."`, `"Rust ..."`, `"Node.js ..."`).
+- Cut the query to 600 characters — the API's cap. A pasted stack trace goes
+  over it easily and comes back as exit 1 / `validation (422)`. Keep the error
+  line and the frames that name the user's own code.
 
 ## Search
 
@@ -27,16 +30,16 @@ If results are thin, broaden in this order:
 
 1. Drop the framework keyword.
 2. Drop `--threshold strict` (back to balanced).
-3. Try `bx web "<error>" --result-filter discussions` to surface
-   forum threads (Stack Overflow, GitHub discussions often have the fix).
-4. Allowlist canonical sources, e.g. `--include-site docs.python.org
-   --include-site github.com`.
+3. Try `bx web "<error>" --result-filter discussions` to surface forum threads
+   (Stack Overflow, GitHub discussions often have the fix). That response has
+   no `.grounding` — read `.discussions.results[]`.
+
+If instead the results are off-topic, narrow by allowlisting canonical sources,
+e.g. `--include-site docs.python.org --include-site github.com`.
 
 ## Synthesize
 
-Pull `.grounding.generic[]` snippets, identify the common root cause across
-sources, propose a concrete code change, and cite the URLs you used.
-
-Follow the skill instructions exactly, including citation standards and the
-fallback contract: try `bx`, then the matching curl skill, then stop and
-point the user at `/bx-setup`.
+Pull the snippets — `.grounding.generic[]` from `bx context`, or
+`.discussions.results[]` if you fell back to `bx web` — identify the common
+root cause across sources, propose a concrete code change, and cite the URLs
+you used.

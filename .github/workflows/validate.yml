@@ -5,6 +5,9 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -20,3 +23,31 @@ jobs:
 
       - name: Validate manifest + frontmatter
         run: node scripts/validate-template.mjs
+
+      - name: Validator rejects an API key in curl's argv
+        run: |
+          tmp="$(mktemp -d)"
+          tar --exclude=.git -cf - . | tar -xf - -C "$tmp"
+          printf '\n```bash\ncurl -sH "X-Subscription-Token: $BRAVE_API_KEY" https://api.search.brave.com/\n```\n' \
+            >> "$tmp/docs/api-key-setup.md"
+          if node "$tmp/scripts/validate-template.mjs"; then
+            echo "error: the secret scan should have failed on this snippet" >&2
+            exit 1
+          fi
+
+      - name: Install/uninstall cycle keeps local secrets out of the copy
+        run: |
+          home="$(mktemp -d)"
+          printf 'export BRAVE_API_KEY=secret\n' > .envrc
+          printf 'K=secret\n' > .env.production
+          HOME="$home" bash install.sh
+          dst="$home/.cursor/plugins/local/brave-search"
+          test -f "$dst/.cursor-plugin/plugin.json"
+          if find "$dst" -maxdepth 1 \( -name '.env*' -o -name '.direnv' \) | grep -q .; then
+            echo "error: a local secret file was copied into the plugin dir" >&2
+            exit 1
+          fi
+          HOME="$home" bash install.sh --uninstall
+          test ! -e "$dst"
+          test -z "$(find "$home/.cursor/plugins/local" -maxdepth 1 -name '.brave-search.tmp.*')"
+          rm -f .envrc .env.production

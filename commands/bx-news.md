@@ -17,9 +17,7 @@ based on what the user asked for:
 - `py` — past year
 - `YYYY-MM-DDtoYYYY-MM-DD` — custom range
 
-Add `--exclude-site medium.com` if SEO-blog noise crowds out primary sources;
-add `--include-site reuters.com` (etc.) to allowlist authoritative outlets.
-
-Follow the skill instructions exactly, including citation standards and the
-fallback contract: try `bx`, then the matching curl skill, then stop and
-point the user at `/bx-setup`.
+Add `--exclude-site medium.com` if SEO-blog noise crowds out primary sources,
+**or** `--include-site reuters.com` (etc.) to allowlist authoritative outlets —
+`--include-site`, `--exclude-site`, and `--goggles` are mutually exclusive, and
+combining any two exits 2. Pass `--goggles` if you need both directions at once.

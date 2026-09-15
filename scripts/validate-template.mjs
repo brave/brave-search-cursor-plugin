@@ -91,6 +91,7 @@ function parseFrontmatter(content, rel) {
 function parseBlock(block) {
   const fields = {};
   for (const line of block.split("\n")) {
+    if (/^\s/.test(line)) continue; // nested key — must not shadow a top-level one
     const trimmed = line.trim();
     if (!trimmed || trimmed.startsWith("#")) continue;
     const sep = line.indexOf(":");
@@ -212,13 +213,14 @@ async function validateFrontmatterFile(repoRoot, filePath, componentName, requir
   const parsed = parseFrontmatter(content, rel);
   if (!parsed) {
     addError(`${componentName} file missing YAML frontmatter: ${rel}`);
-    return;
+    return null;
   }
   for (const key of requiredKeys) {
     if (!parsed[key] || parsed[key].length === 0) {
       addError(`${componentName} file missing "${key}" in frontmatter: ${rel}`);
     }
   }
+  return parsed;
 }
 
 async function validateComponentDirs(repoRoot) {
@@ -236,9 +238,10 @@ async function validateComponentDirs(repoRoot) {
   if (await pathExists(skillsDir)) {
     for (const f of await walkFiles(skillsDir)) {
       if (path.basename(f) === "SKILL.md") {
-        await validateFrontmatterFile(repoRoot, f, "skill", ["name", "description"]);
-        const content = await fs.readFile(f, "utf8");
-        const parsed = parseFrontmatter(content, path.relative(repoRoot, f));
+        const parsed = await validateFrontmatterFile(repoRoot, f, "skill", [
+          "name",
+          "description",
+        ]);
         const dirName = path.basename(path.dirname(f));
         if (parsed?.name && parsed.name !== dirName) {
           addError(
@@ -269,9 +272,10 @@ async function validateComponentDirs(repoRoot) {
     for (const f of await walkFiles(commandsDir)) {
       const ext = path.extname(f).toLowerCase();
       if ([".md", ".mdc", ".markdown", ".txt"].includes(ext)) {
-        await validateFrontmatterFile(repoRoot, f, "command", ["name", "description"]);
-        const content = await fs.readFile(f, "utf8");
-        const parsed = parseFrontmatter(content, path.relative(repoRoot, f));
+        const parsed = await validateFrontmatterFile(repoRoot, f, "command", [
+          "name",
+          "description",
+        ]);
         const expected = path.basename(f, path.extname(f));
         if (parsed?.name && parsed.name !== expected) {
           addError(
@@ -286,8 +290,9 @@ async function validateComponentDirs(repoRoot) {
 // A `-H "X-Subscription-Token: $KEY"` header is expanded by the shell before
 // execve, so the plaintext key ends up in curl's argv — and /proc/<pid>/cmdline
 // is world-readable. Documented calls must pipe the header into `curl -H @-`
-// (stdin) instead.
-const argvSecretPattern = /-H\s+["']?\s*X-Subscription-Token/i;
+// (stdin) instead. The flag group also matches `--header`, `-H"..."` and
+// bundled short options like `-sH`, all of which are the same mistake.
+const argvSecretPattern = /(^|\s)(-[A-Za-z]*H|--header)[=\s'"$\\]*X-Subscription-Token/i;
 
 async function validateNoSecretsInArgv(repoRoot) {
   const roots = ["skills", "commands", "docs", "rules", "README.md"];
@@ -297,17 +302,12 @@ async function validateNoSecretsInArgv(repoRoot) {
     const stat = await fs.stat(target);
     const files = stat.isDirectory() ? await walkFiles(target) : [target];
     for (const f of files) {
-      if (![".md", ".mdc", ".markdown"].includes(path.extname(f).toLowerCase())) continue;
+      if (![".md", ".mdc", ".markdown", ".txt"].includes(path.extname(f).toLowerCase())) continue;
       const lines = normalizeNewlines(await fs.readFile(f, "utf8")).split("\n");
-      // Only runnable snippets matter; prose and inline code may quote the
-      // bad pattern in order to warn against it.
-      let inFence = false;
+      // Every line is scanned, prose included: the pattern is specific enough
+      // that a warning can be phrased without writing the bad flag out.
       lines.forEach((line, i) => {
-        if (/^\s*(```|~~~)/.test(line)) {
-          inFence = !inFence;
-          return;
-        }
-        if (inFence && argvSecretPattern.test(line)) {
+        if (argvSecretPattern.test(line)) {
           addError(
             `${path.relative(repoRoot, f)}:${i + 1} passes the API key in curl's argv ` +
               `(-H "X-Subscription-Token: ..."), which is world-readable via ps / ` +
@@ -320,7 +320,7 @@ async function validateNoSecretsInArgv(repoRoot) {
   }
 }
 
-function summarizeAndExit() {
+function summarize() {
   if (warnings.length) {
     console.log("Warnings:");
     for (const w of warnings) console.log(`- ${w}`);
@@ -329,7 +329,8 @@ function summarizeAndExit() {
   if (errors.length) {
     console.error("Validation failed:");
     for (const e of errors) console.error(`- ${e}`);
-    process.exit(1);
+    process.exitCode = 1;
+    return;
   }
   console.log("Validation passed.");
 }
@@ -346,8 +347,13 @@ async function main() {
 
   const manifestPath = path.join(repoRoot, ".cursor-plugin", "plugin.json");
   const manifest = await readJsonFile(manifestPath, "Plugin manifest");
-  if (!manifest) {
-    summarizeAndExit();
+  // `JSON.parse("null")` succeeds, so a valid-JSON-but-not-an-object manifest
+  // would otherwise reach the end with no errors recorded.
+  if (!manifest || typeof manifest !== "object" || Array.isArray(manifest)) {
+    if (errors.length === 0) {
+      addError(`Plugin manifest must be a JSON object (${manifestPath}).`);
+    }
+    summarize();
     return;
   }
 
@@ -426,7 +432,10 @@ async function main() {
     }
   }
 
-  summarizeAndExit();
+  summarize();
 }
 
-await main();
+await main().catch((err) => {
+  console.error(`Validator crashed: ${err?.stack ?? err}`);
+  process.exitCode = 2;
+});

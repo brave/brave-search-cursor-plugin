@@ -9,7 +9,7 @@ news, images, and videos — all through Brave's
 
 | Capability                       | Skill                 | Command                                                              |
 | -------------------------------- | --------------------- | -------------------------------------------------------------------- |
-| **All-in-one CLI (recommended)** | `bx`                  | `/bx-search`, `/bx-answers`, `/bx-research`, `/bx-news`, `/bx-debug` |
+| **All-in-one CLI (recommended)** | `bx`                  | `/bx-search`, `/bx-answers`, `/bx-research`, `/bx-news`, `/bx-images`, `/bx-videos`, `/bx-debug` |
 | **RAG / LLM grounding**          | `brave-llm-context`   | (covered by `/bx-search`)                                            |
 | **AI answers (single-shot)**     | `brave-answers`       | `/bx-answers` — one search, ~5–30s                                   |
 | **Deep research**                | `brave-answers`       | `/bx-research` — same skill, `--enable-research`, up to ~5 min       |
@@ -68,21 +68,18 @@ Open Cursor → Customize → Plugins (or the marketplace panel) → search
 
 ```bash
 bash install.sh                 # copy into ~/.cursor/plugins/local
-bash install.sh --with-claude   # also register in Claude Code
 bash install.sh --symlink       # symlink instead (often ignored by Cursor)
 # ...edit code, re-run install.sh, then: Cmd/Ctrl+Shift+P → Developer: Reload Window
 bash install.sh --uninstall     # tear down
 ```
 
-Default is Cursor-only: the script **copies** this checkout into
+The script **copies** this checkout into
 `~/.cursor/plugins/local/brave-search`. Cursor currently rejects
 local-plugin symlinks whose target is outside that directory, so a copy is
 what actually loads. Re-run `install.sh` after you edit the plugin, then
-reload. `--symlink` is opt-in for builds that allow live iteration. Pass
-`--with-claude` to also register `brave-search@local` in
-`~/.claude/plugins/installed_plugins.json` and enable it in
-`~/.claude/settings.json`. If the plugin still does not appear after a
-reload, confirm the copy exists at that path and see the
+reload. `--symlink` is opt-in for builds that allow live iteration. If the
+plugin still does not appear after a reload, confirm the copy exists at that
+path and see the
 [Cursor plugins reference](https://cursor.com/docs/reference/plugins).
 
 After install, reload Cursor and verify in chat that the `bx` skill and
@@ -133,7 +130,6 @@ Per the [Cursor plugins reference](https://cursor.com/docs/reference/plugins):
 │                                #   brave-images-search, brave-videos-search
 ├── commands/                    # /bx-* slash commands (setup, search, status, …)
 ├── docs/api-key-setup.md
-├── docs/safe-query-handling.md  # how user text reaches a search call
 ├── install.sh                   # local-dev install/uninstall helper
 └── scripts/validate-template.mjs
 ```

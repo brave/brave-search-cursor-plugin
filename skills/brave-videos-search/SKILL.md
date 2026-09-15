@@ -2,14 +2,14 @@
 name: brave-videos-search
 description: "Returns videos with title, URL, duration, views, and creator from Brave Search. Use only when the user explicitly wants video content such as conference talks, tutorials, or demos. Prefer `bx videos` when the CLI is on PATH."
 allowed-tools: Bash(echo:*), Bash(curl:*), Bash(bx:*)
-compatibility: Requires `curl`, a Brave Search API key (`BRAVE_API_KEY`), and network access to api.search.brave.com.
+compatibility: Requires `curl` 7.76+ (for `--fail-with-body`), a Brave Search API key (`BRAVE_API_KEY`), and network access to api.search.brave.com.
 ---
 
 # Video Search (Brave)
 
 Find videos for: $ARGUMENTS
 
-If `$ARGUMENTS` is empty, use the user's query.
+If the line above still reads literally `$ARGUMENTS`, or is blank, use the user's latest request.
 
 ## When to pick this skill
 
@@ -19,7 +19,7 @@ Reach for this when the user explicitly wants video content — conference talks
 
 ```bash
 echo "X-Subscription-Token: $BRAVE_API_KEY" |
-curl -H @- -fsSL "https://api.search.brave.com/res/v1/videos/search" \
+curl -H @- --fail-with-body -sSL --max-redirs 0 "https://api.search.brave.com/res/v1/videos/search" \
   -G --data-urlencode "q=your query" \
   --data-urlencode "count=20"
 ```
@@ -44,7 +44,7 @@ curl -H @- -fsSL "https://api.search.brave.com/res/v1/videos/search" \
       "description": "...",
       "age": "3 weeks ago",
       "video": {
-        "duration": "PT15M30S",
+        "duration": "45:13",
         "views": 12345,
         "creator": "...",
         "publisher": "YouTube"
@@ -55,7 +55,7 @@ curl -H @- -fsSL "https://api.search.brave.com/res/v1/videos/search" \
 }
 ```
 
-Pull `results[].url`, `results[].video.duration`, `results[].video.creator`, `results[].video.views` — duration / creator / views are the high-signal fields when picking which video to surface. Full schema: <https://api-dashboard.search.brave.com/api-reference/videos/video_search/get/index.html.md>.
+Pull `results[].url`, `results[].video.duration`, `results[].video.creator`, `results[].video.views` — duration / creator / views are the high-signal fields when picking which video to surface. `duration` is a variable-format time string (`"45:13"`, `"03:45:00"`), not an ISO-8601 duration, so don't try to parse it as one. Full schema: <https://api-dashboard.search.brave.com/api-reference/videos/video_search/get/index.html.md>.
 
 ## Citing results
 

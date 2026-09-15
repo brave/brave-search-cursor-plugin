@@ -2,20 +2,20 @@
 name: brave-news-search
 description: "Returns recent news articles (title, URL, description, publication age) from Brave Search, with freshness windows and Goggles. Use when the user asks for latest news, breaking stories, security advisories, or current events. Prefer `bx news` when the CLI is on PATH."
 allowed-tools: Bash(echo:*), Bash(curl:*), Bash(bx:*)
-compatibility: Requires `curl`, a Brave Search API key (`BRAVE_API_KEY`), and network access to api.search.brave.com.
+compatibility: Requires `curl` 7.76+ (for `--fail-with-body`), a Brave Search API key (`BRAVE_API_KEY`), and network access to api.search.brave.com.
 ---
 
 # News Search (Brave)
 
 Find recent news for: $ARGUMENTS
 
-If `$ARGUMENTS` is empty, use the user's query.
+If the line above still reads literally `$ARGUMENTS`, or is blank, use the user's latest request.
 
 ## Canonical call
 
 ```bash
 echo "X-Subscription-Token: $BRAVE_API_KEY" |
-curl -H @- -fsSL "https://api.search.brave.com/res/v1/news/search" \
+curl -H @- --fail-with-body -sSL --max-redirs 0 "https://api.search.brave.com/res/v1/news/search" \
   -G --data-urlencode "q=your query" \
   --data-urlencode "freshness=pw" \
   --data-urlencode "count=20"

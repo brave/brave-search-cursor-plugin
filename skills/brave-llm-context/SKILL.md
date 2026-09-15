@@ -2,14 +2,14 @@
 name: brave-llm-context
 description: "Returns pre-extracted, token-budgeted web content (text, tables, code) from Brave Search for RAG and agent reasoning. Use when grounding a claim, looking up documentation, fact-checking, or gathering sources the agent will reason over. Prefer brave-answers / bx answers for a finished cited explanation. Prefer the bx CLI when it is on PATH."
 allowed-tools: Bash(echo:*), Bash(curl:*), Bash(bx:*)
-compatibility: Requires `curl`, a Brave Search API key (`BRAVE_API_KEY`), and network access to api.search.brave.com.
+compatibility: Requires `curl` 7.76+ (for `--fail-with-body`), a Brave Search API key (`BRAVE_API_KEY`), and network access to api.search.brave.com.
 ---
 
 # LLM Context (Brave)
 
 Ground a query in real web content for: $ARGUMENTS
 
-If `$ARGUMENTS` is empty, use the user's query.
+If the line above still reads literally `$ARGUMENTS`, or is blank, use the user's latest request.
 
 ## When to pick this skill
 
@@ -19,7 +19,7 @@ This is the right skill when _the agent_ will reason over the web content — RA
 
 ```bash
 echo "X-Subscription-Token: $BRAVE_API_KEY" |
-curl -H @- -fsSL "https://api.search.brave.com/res/v1/llm/context" \
+curl -H @- --fail-with-body -sSL --max-redirs 0 "https://api.search.brave.com/res/v1/llm/context" \
   -G --data-urlencode "q=your query"
 ```
 
@@ -33,7 +33,7 @@ POST is also supported (same fields as JSON body) — useful for long queries or
 | `maximum_number_of_tokens_per_url` | 4096       | Cap per-URL bloat (512–8192).                                                            |
 | `maximum_number_of_urls`           | 20         | Cap source count (1–50). 5 is plenty for grounding a focused answer.                     |
 | `count`                            | 20         | Search results to consider before extraction (1–50).                                     |
-| `context_threshold_mode`           | `balanced` | `strict` for precision (cleaner snippets), `lenient` for recall.                         |
+| `context_threshold_mode`           | unset      | `strict` for precision (cleaner snippets), `lenient` for recall, `disabled` for no cut.   |
 | `goggles`                          | —          | Re-rank to favor trusted sources (e.g. official docs only).                              |
 
 Quick recipe:
@@ -69,7 +69,12 @@ $site=peps.python.org'
     "https://example.com": {
       "title": "...",
       "hostname": "...",
-      "age": ["...", "2025-01-15", "392 days ago"]
+      "age": [
+        "Wednesday, January 15, 2025",
+        "2025-01-15",
+        "392 days ago",
+        "2025-01-15T09:40:53Z"
+      ]
     }
   }
 }
