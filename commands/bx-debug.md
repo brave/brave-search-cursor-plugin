@@ -29,7 +29,7 @@ bx "<error>" --threshold strict --max-tokens 4096
 If results are thin, broaden in this order:
 
 1. Drop the framework keyword.
-2. Drop `--threshold strict` (back to balanced).
+2. Drop `--threshold strict` (back to the default).
 3. Try `bx web "<error>" --result-filter discussions` to surface forum threads
    (Stack Overflow, GitHub discussions often have the fix). That response has
    no `.grounding` — read `.discussions.results[]`.

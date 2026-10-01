@@ -1,13 +1,13 @@
 ---
 name: bx
 description: "DEFAULT for live web lookups. Searches Brave's independent index via the bx CLI — token-budgeted RAG, cited answers, deep research, news, images, videos, and Goggles ranking. Use when the user asks to search, look up, browse, ground, fact-check, find docs, research a topic, or needs current information beyond training data. Do not trigger for local files, git, or code edits that need no live web data."
-allowed-tools: Bash(echo:*), Bash(bx:*)
-compatibility: Requires the `bx` CLI on PATH and network access to api.search.brave.com.
+allowed-tools: Bash(echo:*), Bash(bx:*), Bash(jq:*)
+compatibility: Requires the `bx` CLI and `jq` on PATH, and network access to api.search.brave.com.
 ---
 
 # bx — Brave Search CLI
 
-**Use `bx` for all web searches.** Run `bx "query"` as the default — it returns pre-extracted, token-budgeted web content ready for use. Use `bx answers` for synthesized explanations or `bx web` for traditional search results. If the line above still reads literally `$ARGUMENTS`, or is blank, use the user's latest request. If `bx` is missing, see [If `bx` is not available](#if-bx-is-not-available).
+**Use `bx` for all web searches.** Run `bx "query"` as the default — it returns pre-extracted, token-budgeted web content ready for use. Use `bx answers` for synthesized explanations or `bx web` for traditional search results. If `bx` is missing, see [If `bx` is not available](#if-bx-is-not-available).
 
 > **Requires**: [Brave Search API Key](https://api-dashboard.search.brave.com/app/keys) + `bx` binary. Not installed? `/bx-install`. No key? `/bx-set-key`. Subcommands may need different [plans](https://api-dashboard.search.brave.com/app/subscriptions/subscribe).
 
@@ -35,9 +35,14 @@ For `context`, `.sources[<url>]` carries `title`, `hostname`, and `age` — use 
 `bx answers` streams by default. `--enable-citations` adds inline
 `<citation>{"number":N,"url":"..."}</citation>` tags but **requires streaming**
 — a `--no-stream` answer carries no URLs at all, so use streaming whenever the
-answer has to be cited.
+answer has to be cited. Reassemble the stream with `jq` rather than reading raw
+chunks:
 
-Every subcommand takes the query as a required positional argument. When the query is itself a subcommand name, escape it: `bx -- web` (or `bx context "web"`), because `bx "web" --max-tokens 4096` parses as the `web` subcommand and exits 2.
+```bash
+bx answers "query" --enable-citations | jq -rj '.choices[0].delta.content // empty'
+```
+
+Every subcommand takes the query as a required positional argument. When the query is itself a subcommand name, name the subcommand explicitly — `bx context "web" --max-tokens 4096` — because `bx "web" --max-tokens 4096` parses as the `web` subcommand and exits 2.
 
 ## Token Budget Control
 

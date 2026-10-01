@@ -2,7 +2,7 @@
 name: brave-answers
 description: "Synthesizes a cited answer from Brave's OpenAI-compatible chat completions. Single-search is fast; enable_research runs multi-search deep research. Use when the user wants a finished explanation, comparison, or researched report rather than raw sources. Prefer `bx answers` when the CLI is on PATH."
 allowed-tools: Bash(echo:*), Bash(curl:*), Bash(bx:*), Bash(jq:*)
-compatibility: Requires `curl` 7.76+ (for `--fail-with-body`), a Brave Search API key (`BRAVE_API_KEY`) on the Answers plan, and network access to api.search.brave.com.
+compatibility: Requires `curl` 7.76+ (for `--fail-with-body`), `jq`, a Brave Search API key (`BRAVE_API_KEY`) on the Answers plan, and network access to api.search.brave.com.
 ---
 
 # Answers (Brave)
@@ -79,10 +79,10 @@ curl -H @- --fail-with-body -sSL --max-redirs 0 -X POST "https://api.search.brav
     stream: true,
     enable_research: true,
     messages: [{role: "user", content: $q}]
-  }')" > "$outdir/research-output.txt"
+  }')" | jq -rj '.choices[0].delta.content // empty' > "$outdir/research-output.txt"
 ```
 
-Streaming is required — write to a temp file (don't flood the chat). Pull the final synthesized text from the `<answer>...</answer>` tag in the file.
+Streaming is required — write to a temp file (don't flood the chat). `jq` joins the streamed chunks back into text; pull the final synthesized report from the `<answer>...</answer>` tag in the file. An empty file means the request failed — curl prints the error on stderr.
 
 Create that file with `mktemp -d` rather than a fixed path like `/tmp/research-output.txt`. On a shared machine `/tmp` is world-writable and a `>` redirect follows a symlink, so a predictable name lets another local user choose what gets overwritten.
 
@@ -106,7 +106,7 @@ The endpoint is OpenAI-compatible — point any chat-completions client at `base
 | ------------------------------------------------------ | --------------------------------------------------- |
 | `<answer>`                                             | **Yes** — the final synthesized answer              |
 | `<blindspots>`                                         | **Yes** — knowledge gaps the model couldn't resolve |
-| `<usage>`                                              | **Yes** — JSON token / cost data                    |
+| `<usage>`                                              | No — token / cost data; strip from the reply        |
 | `<progress>`, `<thinking>`, `<analyzing>`, `<queries>` | Debug only — ignore for the user-facing reply       |
 
 ## Citing results

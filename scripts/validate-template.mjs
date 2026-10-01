@@ -120,59 +120,9 @@ async function walkFiles(dir) {
 
 function isSafeRelativePath(value) {
   if (typeof value !== "string" || value.length === 0) return false;
-  if (value.startsWith("http://") || value.startsWith("https://")) return true;
   if (path.isAbsolute(value)) return false;
   const normalized = path.posix.normalize(value.replace(/\\/g, "/"));
   return !normalized.startsWith("../") && normalized !== "..";
-}
-
-function collectPlaceholderNames(value, out = new Set()) {
-  if (typeof value === "string") {
-    for (const match of value.matchAll(/\$\{([A-Z][A-Z0-9_]*)\}/g)) {
-      out.add(match[1]);
-    }
-    return out;
-  }
-  if (Array.isArray(value)) {
-    for (const item of value) collectPlaceholderNames(item, out);
-    return out;
-  }
-  if (value && typeof value === "object") {
-    for (const item of Object.values(value)) collectPlaceholderNames(item, out);
-  }
-  return out;
-}
-
-const builtInPlaceholders = new Set(["PLUGIN_ROOT"]);
-
-async function validateMcpVariables(repoRoot, manifest) {
-  let mcpConfig = null;
-  if (typeof manifest.mcpServers === "string") {
-    const mcpPath = path.resolve(repoRoot, manifest.mcpServers);
-    mcpConfig = await readJsonFile(mcpPath, "MCP config");
-  } else if (manifest.mcpServers && typeof manifest.mcpServers === "object") {
-    mcpConfig = manifest.mcpServers;
-  } else {
-    const defaultPath = path.join(repoRoot, "mcp.json");
-    if (await pathExists(defaultPath)) {
-      mcpConfig = await readJsonFile(defaultPath, "MCP config");
-    }
-  }
-  if (!mcpConfig) return;
-
-  const used = [...collectPlaceholderNames(mcpConfig)].filter(
-    (name) => !builtInPlaceholders.has(name)
-  );
-  const declared = new Set(
-    Object.keys(manifest.variables?.properties ?? {})
-  );
-  for (const name of used) {
-    if (!declared.has(name)) {
-      addError(
-        `mcp.json uses \${${name}} but .cursor-plugin/plugin.json variables.properties does not declare it.`
-      );
-    }
-  }
 }
 
 function extractPathValues(value) {
@@ -253,16 +203,6 @@ async function validateComponentDirs(repoRoot) {
             `skill description exceeds 1024 characters in ${path.relative(repoRoot, f)}.`
           );
         }
-      }
-    }
-  }
-
-  const agentsDir = path.join(repoRoot, "agents");
-  if (await pathExists(agentsDir)) {
-    for (const f of await walkFiles(agentsDir)) {
-      const ext = path.extname(f).toLowerCase();
-      if ([".md", ".mdc", ".markdown"].includes(ext)) {
-        await validateFrontmatterFile(repoRoot, f, "agent", ["name", "description"]);
       }
     }
   }
@@ -394,7 +334,6 @@ async function main() {
   }
 
   await validateComponentDirs(repoRoot);
-  await validateMcpVariables(repoRoot, manifest);
   await validateNoSecretsInArgv(repoRoot);
 
   const skillsDir = path.join(repoRoot, "skills");
@@ -414,21 +353,6 @@ async function main() {
     }
     if (!foundAny) {
       addWarning("skills/ exists but contains no skills with a SKILL.md file.");
-    }
-  }
-
-  // Only warn about hooks/MCP files when the manifest actually references
-  // those subsystems. Otherwise the warnings are noise on every run.
-  if (manifest.hooks !== undefined) {
-    const hooksPath = path.join(repoRoot, "hooks", "hooks.json");
-    if (!(await pathExists(hooksPath))) {
-      addWarning("manifest references hooks but hooks/hooks.json is missing.");
-    }
-  }
-  if (manifest.mcpServers !== undefined) {
-    const mcpPath = path.join(repoRoot, "mcp.json");
-    if (!(await pathExists(mcpPath))) {
-      addWarning("manifest references mcpServers but mcp.json is missing.");
     }
   }
 

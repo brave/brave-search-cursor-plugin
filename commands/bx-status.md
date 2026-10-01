@@ -1,6 +1,6 @@
 ---
 name: bx-status
-description: Check Brave Search plugin health — bx CLI install and API key presence (without printing it). Usage: /bx-status
+description: "Check Brave Search plugin health — bx CLI install and API key presence (without printing it). Usage: /bx-status"
 ---
 
 # /bx-status
@@ -33,15 +33,15 @@ it passes for users whose key arrives by a route this doc never mentions.
 because the API reports it as HTTP 422 — and a query over the length cap
 reports 422 as well, so the message is what separates them.
 
-| Exit | Meaning                                | Next step                                                                                     |
-| ---- | -------------------------------------- | --------------------------------------------------------------------------------------------- |
-| 0    | Working                                | CLI path is good                                                                              |
-| 1    | Request made, result unusable          | Match stderr: `subscription token invalid (422)` → bad/expired key, rotate at https://api-dashboard.search.brave.com/app/keys and `/bx-set-key`. `validation (422)` → the request was rejected, usually a query over 600 characters (400 for `news`); shorten it and leave the key alone. |
-| 2    | Usage, config, or no API key           | Read stderr: `No API key found` → run `/bx-set-key` or export `BRAVE_API_KEY`; otherwise fix the flags |
-| 3    | Auth/permission (401/403)              | Key is recognized but not permitted — check the plan covers this endpoint                      |
-| 4    | Rate limited (429)                     | Key works; wait or upgrade plan                                                               |
-| 5    | Network/server (5xx)                   | Retry; check connectivity to api.search.brave.com                                             |
-| 127  | npm launcher could not start `bx`      | Reinstall via `/bx-install`; check platform support                                           |
+| Exit | Meaning                           | Next step                                                                                                                                                                                                                                                                                 |
+| ---- | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0    | Working                           | CLI path is good                                                                                                                                                                                                                                                                          |
+| 1    | Request made, result unusable     | Match stderr: `subscription token invalid (422)` → bad/expired key, rotate at https://api-dashboard.search.brave.com/app/keys and `/bx-set-key`. `validation (422)` → the request was rejected, usually a query over 600 characters (400 for `news`); shorten it and leave the key alone. |
+| 2    | Usage, config, or no API key      | Read stderr: `No API key found` → run `/bx-set-key` or export `BRAVE_API_KEY`; otherwise fix the flags                                                                                                                                                                                    |
+| 3    | Auth/permission (401/403)         | Key is recognized but not permitted — check the plan covers this endpoint                                                                                                                                                                                                                 |
+| 4    | Rate limited (429)                | Key works; wait or upgrade plan                                                                                                                                                                                                                                                           |
+| 5    | Network/server (5xx)              | Retry; check connectivity to api.search.brave.com                                                                                                                                                                                                                                         |
+| 127  | npm launcher could not start `bx` | Reinstall via `/bx-install`; check platform support                                                                                                                                                                                                                                       |
 
 `No API key found` is the one message that spans two codes — current `bx` exits
 2 for it, builds before 1.7.0 exit 1. Either way the fix is the same, which is

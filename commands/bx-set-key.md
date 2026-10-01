@@ -8,10 +8,6 @@ description: Configure the Brave Search API key for the `bx` CLI, keeping it out
 Configure the Brave Search API key the `bx` CLI uses for authentication. Keeps
 the key out of shell history and process listings.
 
-Skip this command if `bx web "test" --count 1` already exits 0 — a key is
-configured somewhere and nothing needs changing. This writes the `bx` config
-file.
-
 ## Steps
 
 1. **Verify install.** Run `bx --version`. If it fails, run `/bx-install`
@@ -28,7 +24,8 @@ file.
    about the config file, so it reports "no API key configured" for a user
    whose key comes from the environment.
 
-3. **Run interactive set-key:**
+3. **Ask the user to run interactive set-key in their own terminal** — it
+   prompts for input the agent can't type:
 
    ```bash
    bx config set-key
