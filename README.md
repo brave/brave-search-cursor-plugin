@@ -1,18 +1,16 @@
 # Brave Search — Cursor plugin
 
 Brave Search skills and `bx` CLI commands for the [Cursor](https://cursor.com)
-AI agent: token-budgeted web grounding, AI-synthesized answers, deep research,
-news, images, and videos — all through Brave's
+AI agent: token-budgeted web grounding, ranked web results, news, images, and
+videos — all through Brave's
 [independent web index](https://brave.com/search/api/).
 
 ## Features
 
 | Capability                       | Skill                 | Command                                                              |
 | -------------------------------- | --------------------- | -------------------------------------------------------------------- |
-| **All-in-one CLI (recommended)** | `bx`                  | `/bx-search`, `/bx-answers`, `/bx-research`, `/bx-news`, `/bx-images`, `/bx-videos`, `/bx-debug` |
+| **All-in-one CLI (recommended)** | `bx`                  | `/bx-search`, `/bx-news`, `/bx-images`, `/bx-videos`, `/bx-debug`    |
 | **RAG / LLM grounding**          | `brave-llm-context`   | (covered by `/bx-search`)                                            |
-| **AI answers (single-shot)**     | `brave-answers`       | `/bx-answers` — one search, ~5–30s                                   |
-| **Deep research**                | `brave-answers`       | `/bx-research` — same skill, `--enable-research`, up to ~5 min       |
 | **News**                         | `brave-news-search`   | `/bx-news`                                                           |
 | **Images**                       | `brave-images-search` | `/bx-images`                                                         |
 | **Videos**                       | `brave-videos-search` | `/bx-videos`                                                         |
@@ -43,7 +41,7 @@ blocking other search tools.
 
    Then `/bx-set-key` (or `bx config set-key` interactively).
 
-> The 5 raw-API skills (everything except `bx`) work without the CLI — they
+> The 4 raw-API skills (everything except `bx`) work without the CLI — they
 > teach the agent to call the Brave Search API directly with `curl`. Slash
 > commands prefer `bx`, then curl. Ranked SERP hits use `bx web` (no
 > dedicated curl skill).
@@ -56,8 +54,8 @@ Open Cursor → Customize → Plugins (or the marketplace panel) → search
 "Brave Search" → install.
 
 - Skills appear under **Customize → Skills** (Agent Decides) and can be
-  invoked with `/bx`, `/brave-llm-context`, `/brave-answers`, etc.
-- Slash commands (`/bx-setup`, `/bx-search`, `/bx-answers`, `/bx-status`, …)
+  invoked with `/bx`, `/brave-llm-context`, `/brave-news-search`, etc.
+- Slash commands (`/bx-setup`, `/bx-search`, `/bx-debug`, `/bx-status`, …)
   appear in the chat `/` menu.
 - The prefer-bx awareness rule is on by default; toggle it under
   **Customize → Rules**.
@@ -95,10 +93,8 @@ node scripts/validate-template.mjs
 /bx-setup
 /bx-status
 /bx-search how do Rust lifetimes work
-/bx-answers compare SQLx and Diesel
 /bx-news Next.js 15 release
 /bx-debug TypeError cannot unpack non-iterable NoneType
-/bx-research how is Mojo evolving versus Python in 2026
 /bx-images rust ownership diagram
 /bx-videos rustconf 2026 keynote
 ```
@@ -125,9 +121,9 @@ Per the [Cursor plugins reference](https://cursor.com/docs/reference/plugins):
 ├── LICENSE                      # MIT
 ├── assets/logo.svg              # marketplace logo
 ├── rules/                       # 1 short awareness rule (prefer bx)
-├── skills/                      # 6 SKILL.md files: bx, brave-llm-context,
-│                                #   brave-answers, brave-news-search,
-│                                #   brave-images-search, brave-videos-search
+├── skills/                      # 5 SKILL.md files: bx, brave-llm-context,
+│                                #   brave-news-search, brave-images-search,
+│                                #   brave-videos-search
 ├── commands/                    # /bx-* slash commands (setup, search, status, …)
 ├── docs/api-key-setup.md
 ├── install.sh                   # local-dev install/uninstall helper

@@ -13,7 +13,7 @@ If the line above still reads literally `$ARGUMENTS`, or is blank, use the user'
 
 ## When to pick this skill
 
-Reach for this when the user explicitly wants video content — conference talks, tutorials, demos. For "explain X" prefer `brave-llm-context` (text grounding) or `brave-answers` (synthesized answer).
+Reach for this when the user explicitly wants video content — conference talks, tutorials, demos. For "explain X" prefer `brave-llm-context` (text grounding).
 
 ## Canonical call
 

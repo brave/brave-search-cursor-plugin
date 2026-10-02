@@ -17,10 +17,9 @@ One environment variable, `BRAVE_API_KEY`, authenticates every path:
 ## Get a key
 
 1. Sign up at <https://api-dashboard.search.brave.com/register>.
-2. Choose a plan — all plans include **$5/month of free credits** (~1,000
-   queries on the entry tier).
-3. Open **API Keys** in the dashboard and generate a key. Different endpoints
-   may require different plans (e.g. Search vs Answers vs Suggest).
+2. Subscribe to the **Search** plan — it covers everything this plugin does
+   and includes **$5/month of free credits** (~1,000 queries).
+3. Open **API Keys** in the dashboard and generate a key.
 
 > **Security tip:** prefer agent-native config or directory-scoped env vars
 > over a global shell profile. Coding agents can read every env var your
@@ -113,7 +112,7 @@ full exit-code table.
 | `No API key found`                                      | No key set anywhere                                 | Run `bx config set-key` or `export BRAVE_API_KEY=...`                  |
 | `subscription token invalid (422)`                      | Bad / expired key                                   | Rotate at <https://api-dashboard.search.brave.com/app/keys> and re-set |
 | `validation (422)`                                      | The request was rejected, usually a query over 600 characters (400 for news) | Shorten the query; the key is fine                   |
-| HTTP 401 / 403                                          | Key recognized but not permitted for this endpoint  | Check the plan covers the endpoint (e.g. Answers)                      |
+| HTTP 401 / 403                                          | Key recognized but not permitted                    | Check the key has an active Search plan in the dashboard               |
 | HTTP 429                                                | Rate limited                                        | Back off and retry, or upgrade plan                                    |
 | `bx` works in terminal, not in Cursor chat             | Cursor was launched before the env var was set      | Fully quit Cursor and relaunch from a fresh shell                      |
 

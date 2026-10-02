@@ -1,5 +1,5 @@
 ---
-description: Contextual awareness for Brave Search — suggests using the bx CLI when the user's request needs live web data, grounding, docs, news, or research
+description: Contextual awareness for Brave Search — suggests using the bx CLI when the user's request needs live web data, grounding, docs, or news
 alwaysApply: true
 ---
 
@@ -9,8 +9,7 @@ You have access to Brave Search via the `bx` CLI. Use it proactively when releva
 
 - **Live web, docs, errors, fact-check**: `bx "<query>"` (token-budgeted RAG)
 - **Ranked hits / forums / SERP**: `bx web "<query>"`
-- **Cited explanation**: `bx answers "<question>"` or `/bx-answers`
-- **Deep research**: `/bx-research` (it writes the ~5-minute stream to a file instead of flooding chat)
+- **Comparisons / multi-source questions**: run several narrowed `bx "<query>"` calls and synthesize yourself
 - **News**: `bx news "<query>"`
 - **Images / videos**: `bx images`, `bx videos`
 

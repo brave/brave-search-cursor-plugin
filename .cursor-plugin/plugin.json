@@ -2,7 +2,7 @@
   "name": "brave-search",
   "displayName": "Brave Search API",
   "version": "1.0.0",
-  "description": "Live web search from Brave's independent index — token-budgeted RAG, cited answers, deep research, news, images, and videos via the bx CLI.",
+  "description": "Live web search from Brave's independent index — token-budgeted RAG grounding, web results, news, images, and videos via the bx CLI.",
   "author": {
     "name": "Brave Software",
     "email": "searchapi-support@brave.com"
@@ -17,7 +17,6 @@
     "rag",
     "llm-context",
     "grounding",
-    "research",
     "news",
     "goggles"
   ],
