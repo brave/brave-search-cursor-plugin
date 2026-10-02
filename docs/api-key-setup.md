@@ -1,18 +1,14 @@
 # API Key Setup
 
 This plugin needs a [Brave Search API key](https://api-dashboard.search.brave.com).
-One environment variable, `BRAVE_API_KEY`, authenticates every path:
-
-| Path                    | How it picks up `BRAVE_API_KEY`   |
-| ----------------------- | --------------------------------- |
-| `bx` slash commands     | Shell env, or `bx config set-key` |
-| Raw-API skill (`curl`)  | Shell env (`${BRAVE_API_KEY}`)    |
+Everything goes through the `bx` CLI, which reads the key from the
+`BRAVE_API_KEY` environment variable or from its own config file
+(`bx config set-key`).
 
 > `bx` resolves a key in this order, highest first: the `--api-key` flag,
 > `BRAVE_SEARCH_API_KEY` (its native name), `BRAVE_API_KEY`, then its config
 > file. The config file is **last**, so writing one does not override an env
-> var you already export. This plugin documents `BRAVE_API_KEY` because a
-> single name covers the CLI and the `curl` skills alike.
+> var you already export.
 
 ## Get a key
 
@@ -89,18 +85,11 @@ export BRAVE_API_KEY="your-key"
 After configuring, smoke-test from a Cursor terminal:
 
 ```bash
-# Via the CLI
-bx web "test" --count 1 | jq '.web.results[0].title'
-
-# Or directly against the API
-echo "X-Subscription-Token: $BRAVE_API_KEY" |
-curl -H @- --fail-with-body -sSL --max-redirs 0 "https://api.search.brave.com/res/v1/web/search" \
-  -H "Accept: application/json" \
-  -G --data-urlencode "q=test" \
-  | jq '.web.results[0].title'
+bx web "test" --count 1
 ```
 
-A non-empty title means you're good.
+Exit 0 with a JSON result means you're good. Otherwise see Troubleshooting
+below.
 
 ## Troubleshooting
 

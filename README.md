@@ -1,17 +1,16 @@
 # Brave Search — Cursor plugin
 
-Brave Search skills and `bx` CLI commands for the [Cursor](https://cursor.com)
+A Brave Search skill and `bx` CLI commands for the [Cursor](https://cursor.com)
 AI agent: token-budgeted grounding for docs and errors, forum threads, and
 recent releases and security advisories — all through Brave's
 [independent web index](https://brave.com/search/api/).
 
 ## Features
 
-| Capability                       | Skill                 | Command                                                              |
-| -------------------------------- | --------------------- | -------------------------------------------------------------------- |
-| **All-in-one CLI (recommended)** | `bx`                  | `/bx-search`, `/bx-debug`                                            |
-| **RAG / LLM grounding**          | `brave-llm-context`   | (covered by `/bx-search`)                                            |
-| **Setup / status**               | —                     | `/bx-setup`, `/bx-status` (then `/bx-install`, `/bx-set-key`)        |
+| Capability                          | Skill | Command                                                       |
+| ----------------------------------- | ----- | ------------------------------------------------------------- |
+| **Web grounding, forums, releases** | `bx`  | `/bx-search`, `/bx-debug`                                     |
+| **Setup / status**                  | —     | `/bx-setup`, `/bx-status` (then `/bx-install`, `/bx-set-key`) |
 
 Plus a short always-on rule (`rules/prefer-bx-for-web-search.mdc`) that
 nudges the agent toward `bx` when a lookup needs live web data, without
@@ -21,8 +20,8 @@ blocking other search tools.
 
 1. Get a Brave Search API key at <https://api-dashboard.search.brave.com/app/keys>. The
    Search plan covers everything here and includes $5/month of free credits.
-2. Run `/bx-setup` from chat. One env name, `BRAVE_API_KEY`, covers both `/bx-*`
-   and curl — set it in the environment or run `bx config set-key`. See
+2. Run `/bx-setup` from chat. It installs `bx` and gives it the key — either
+   `BRAVE_API_KEY` in the environment or `bx config set-key`. See
    [`docs/api-key-setup.md`](docs/api-key-setup.md).
 3. Or install `bx` yourself, then `/bx-set-key`:
 
@@ -38,11 +37,6 @@ blocking other search tools.
 
    Then `/bx-set-key` (or `bx config set-key` interactively).
 
-> The `brave-llm-context` skill works without the CLI — it teaches the agent
-> to call the Brave Search API directly with `curl`. Slash commands prefer
-> `bx`, then curl. Ranked hits, forum threads, and release lookups use
-> `bx web` (no curl skill).
-
 ## Install
 
 ### From the Cursor Marketplace
@@ -50,8 +44,8 @@ blocking other search tools.
 Open Cursor → Customize → Plugins (or the marketplace panel) → search
 "Brave Search" → install.
 
-- Skills appear under **Customize → Skills** (Agent Decides) and can be
-  invoked with `/bx` or `/brave-llm-context`.
+- The `bx` skill appears under **Customize → Skills** (Agent Decides) and
+  can be invoked with `/bx`.
 - Slash commands (`/bx-setup`, `/bx-search`, `/bx-debug`, `/bx-status`, …)
   appear in the chat `/` menu.
 - The prefer-bx awareness rule is on by default; toggle it under
@@ -115,7 +109,7 @@ Per the [Cursor plugins reference](https://cursor.com/docs/reference/plugins):
 ├── LICENSE                      # MIT
 ├── assets/logo.svg              # marketplace logo
 ├── rules/                       # 1 short awareness rule (prefer bx)
-├── skills/                      # 2 SKILL.md files: bx, brave-llm-context
+├── skills/bx/SKILL.md            # the bx skill
 ├── commands/                    # /bx-* slash commands (setup, search, status, …)
 ├── docs/api-key-setup.md
 ├── install.sh                   # local-dev install/uninstall helper

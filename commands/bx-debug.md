@@ -5,7 +5,7 @@ description: "Search for an error message, stack trace, or build failure via `bx
 
 # Debug Search (Brave)
 
-Use the **bx** skill (or the **brave-llm-context** skill) to ground a fix for:
+Use the **bx** skill to ground a fix for:
 $ARGUMENTS
 
 ## Pre-process the query

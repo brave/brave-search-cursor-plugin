@@ -5,7 +5,7 @@ description: "Quick web grounding via the bx CLI (`bx context`) — token-budget
 
 # Web Search (Brave)
 
-Use the **bx** skill (or **brave-llm-context**) to run a grounded web search for: $ARGUMENTS
+Use the **bx** skill to run a grounded web search for: $ARGUMENTS
 
 Run the default `bx context` flow (`bx "<query>" --max-tokens 4096`) and pull
 results from `.grounding.generic[]`. Add `--include-site <domain>` if the

@@ -5,9 +5,8 @@ description: First-run setup for the Brave Search plugin. Install bx and set BRA
 
 # /bx-setup
 
-Walk the user through first-run. **One key, one env name:** `BRAVE_API_KEY` —
-set it in the shell, or run `bx config set-key`. Both the `bx` commands and the
-`curl` skills read it.
+Walk the user through first-run: install `bx`, then give it a key — either
+`BRAVE_API_KEY` in the shell, or `bx config set-key`.
 
 Get a key at <https://api-dashboard.search.brave.com/app/keys> if they do not have one.
 
