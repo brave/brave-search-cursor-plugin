@@ -6,7 +6,7 @@ One environment variable, `BRAVE_API_KEY`, authenticates every path:
 | Path                    | How it picks up `BRAVE_API_KEY`   |
 | ----------------------- | --------------------------------- |
 | `bx` slash commands     | Shell env, or `bx config set-key` |
-| Raw-API skills (`curl`) | Shell env (`${BRAVE_API_KEY}`)    |
+| Raw-API skill (`curl`)  | Shell env (`${BRAVE_API_KEY}`)    |
 
 > `bx` resolves a key in this order, highest first: the `--api-key` flag,
 > `BRAVE_SEARCH_API_KEY` (its native name), `BRAVE_API_KEY`, then its config
@@ -111,7 +111,7 @@ full exit-code table.
 | ------------------------------------------------------ | --------------------------------------------------- | ---------------------------------------------------------------------- |
 | `No API key found`                                      | No key set anywhere                                 | Run `bx config set-key` or `export BRAVE_API_KEY=...`                  |
 | `subscription token invalid (422)`                      | Bad / expired key                                   | Rotate at <https://api-dashboard.search.brave.com/app/keys> and re-set |
-| `validation (422)`                                      | The request was rejected, usually a query over 600 characters (400 for news) | Shorten the query; the key is fine                   |
+| `validation (422)`                                      | The request was rejected, usually a query over 600 characters               | Shorten the query; the key is fine                   |
 | HTTP 401 / 403                                          | Key recognized but not permitted                    | Check the key has an active Search plan in the dashboard               |
 | HTTP 429                                                | Rate limited                                        | Back off and retry, or upgrade plan                                    |
 | `bx` works in terminal, not in Cursor chat             | Cursor was launched before the env var was set      | Fully quit Cursor and relaunch from a fresh shell                      |

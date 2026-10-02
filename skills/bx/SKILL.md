@@ -20,7 +20,7 @@ All output is JSON on stdout; errors go to stderr.
 | **Docs, errors, code patterns** (default) | `bx "query"`                                 | `.grounding.generic[]` -> `{url, title, snippets[]}`           |
 | Traditional ranked results                | `bx web "query"`                             | `.web.results[]`; also `.news`, `.discussions`                 |
 | Forums / solutions                        | `bx web "query" --result-filter discussions` | `.discussions.results[]`                                       |
-| Releases, advisories, deprecations        | `bx news "query" --freshness pw`             | `.results[]` -> `{title, url, age}`                            |
+| Releases, advisories, deprecations        | `bx web "query" --freshness pm`              | `.web.results[]` -> `{title, url, age, page_age}`              |
 | Boost/filter specific domains             | `bx "query" --include-site docs.rs`          | see Goggles below                                              |
 | Manage the API key                        | `bx config set-key\|show-key\|path\|show`    | —                                                              |
 
@@ -50,7 +50,7 @@ bx "topic" --max-tokens 4096 --max-tokens-per-url 1024 --max-urls 5 --threshold 
 
 ## Goggles — Custom Ranking
 
-Control which sources appear — boost official docs, suppress SEO spam, or scope to a domain set. Supported on `context`, `web`, and `news`. `--include-site`, `--exclude-site`, and `--goggles` are mutually exclusive.
+Control which sources appear — boost official docs, suppress SEO spam, or scope to a domain set. Supported on `context` and `web`. `--include-site`, `--exclude-site`, and `--goggles` are mutually exclusive.
 
 ```bash
 bx "rust axum" --include-site docs.rs --include-site github.com  # allowlist
@@ -63,6 +63,17 @@ echo '$boost=5,site=docs.rs' | bx "axum middleware" --goggles @-
 ```
 
 Rules: `$boost=N` / `$downrank=N` (N=1-10) with `,site=DOMAIN` or a path pattern, which matches anywhere in the URL unless `|` anchors it to the start or end. A **generic** `$discard` — no pattern, no options — changes the default action and makes the Goggle allowlist-only. `--goggles` also takes `@/path/to/file` or a hosted URL. Full DSL: [goggles-quickstart](https://github.com/brave/goggles-quickstart).
+
+## Releases, advisories, deprecations
+
+For time-sensitive project questions — has a version shipped, what it breaks, is there a CVE for a dependency — use `bx web` with `--freshness` (`pd`, `pw`, `pm`, `py`, or `YYYY-MM-DDtoYYYY-MM-DD`) and a Goggle that boosts the project's own channels, so release notes and advisories outrank coverage of them:
+
+```bash
+bx web "next.js security release" --freshness pm --goggles '$boost=5,site=nextjs.org
+$boost=3,site=github.com'
+```
+
+Give the page date from `age` / `page_age` with each citation, and confirm version numbers against the project's release notes or changelog.
 
 ## Corrective RAG loop
 
@@ -85,7 +96,7 @@ synthesize the answer yourself from the collected snippets, citing each source.
 **Match stderr, not the exit code.** Two different failures both report 422:
 `subscription token invalid (422)` is a bad or expired key — tell the user to
 run `/bx-set-key`. `validation (422)` is a rejected request, most often a query
-over the length cap (600 characters for `context` and `web`, 400 for `news`) —
+over the 600-character length cap —
 shorten the query and leave the key alone. `No API key found` means no key is
 configured anywhere. `/bx-status` carries the full exit-code table.
 
@@ -99,10 +110,9 @@ Never run `bx config show-key` to diagnose an auth failure. Its output is masked
 ## If `bx` is not available
 
 1. Try `bx --version`. If it works, use `bx`.
-2. If `bx` is missing, call the matching raw-API skill with `curl` +
-   `BRAVE_API_KEY` (`brave-llm-context` or `brave-news-search`).
-   There is no curl skill for traditional SERP hits — that path is
-   `bx web`.
+2. If `bx` is missing, use the `brave-llm-context` skill's `curl` call
+   with `BRAVE_API_KEY`. There is no curl skill for `bx web` (ranked
+   hits, forum threads, release lookups).
 3. If neither can authenticate, **stop**. Tell the user to run
    `/bx-setup` (`/bx-install` + `/bx-set-key` for the CLI). Do **not**
    use a built-in search tool or answer from training data.

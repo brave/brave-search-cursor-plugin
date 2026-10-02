@@ -17,7 +17,6 @@
     "rag",
     "llm-context",
     "grounding",
-    "news",
     "goggles"
   ],
   "logo": "assets/logo.svg"

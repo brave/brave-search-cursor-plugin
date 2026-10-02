@@ -9,9 +9,8 @@ recent releases and security advisories — all through Brave's
 
 | Capability                       | Skill                 | Command                                                              |
 | -------------------------------- | --------------------- | -------------------------------------------------------------------- |
-| **All-in-one CLI (recommended)** | `bx`                  | `/bx-search`, `/bx-debug`, `/bx-news`                                |
+| **All-in-one CLI (recommended)** | `bx`                  | `/bx-search`, `/bx-debug`                                            |
 | **RAG / LLM grounding**          | `brave-llm-context`   | (covered by `/bx-search`)                                            |
-| **Releases & advisories**        | `brave-news-search`   | `/bx-news`                                                           |
 | **Setup / status**               | —                     | `/bx-setup`, `/bx-status` (then `/bx-install`, `/bx-set-key`)        |
 
 Plus a short always-on rule (`rules/prefer-bx-for-web-search.mdc`) that
@@ -39,10 +38,10 @@ blocking other search tools.
 
    Then `/bx-set-key` (or `bx config set-key` interactively).
 
-> The 2 raw-API skills (everything except `bx`) work without the CLI — they
-> teach the agent to call the Brave Search API directly with `curl`. Slash
-> commands prefer `bx`, then curl. Ranked SERP hits use `bx web` (no
-> dedicated curl skill).
+> The `brave-llm-context` skill works without the CLI — it teaches the agent
+> to call the Brave Search API directly with `curl`. Slash commands prefer
+> `bx`, then curl. Ranked hits, forum threads, and release lookups use
+> `bx web` (no curl skill).
 
 ## Install
 
@@ -52,7 +51,7 @@ Open Cursor → Customize → Plugins (or the marketplace panel) → search
 "Brave Search" → install.
 
 - Skills appear under **Customize → Skills** (Agent Decides) and can be
-  invoked with `/bx`, `/brave-llm-context`, `/brave-news-search`, etc.
+  invoked with `/bx` or `/brave-llm-context`.
 - Slash commands (`/bx-setup`, `/bx-search`, `/bx-debug`, `/bx-status`, …)
   appear in the chat `/` menu.
 - The prefer-bx awareness rule is on by default; toggle it under
@@ -92,7 +91,6 @@ node scripts/validate-template.mjs
 /bx-status
 /bx-search how do Rust lifetimes work
 /bx-debug TypeError cannot unpack non-iterable NoneType
-/bx-news Next.js 15 release
 ```
 
 ## Submitting to the Cursor Marketplace
@@ -117,8 +115,7 @@ Per the [Cursor plugins reference](https://cursor.com/docs/reference/plugins):
 ├── LICENSE                      # MIT
 ├── assets/logo.svg              # marketplace logo
 ├── rules/                       # 1 short awareness rule (prefer bx)
-├── skills/                      # 3 SKILL.md files: bx, brave-llm-context,
-│                                #   brave-news-search
+├── skills/                      # 2 SKILL.md files: bx, brave-llm-context
 ├── commands/                    # /bx-* slash commands (setup, search, status, …)
 ├── docs/api-key-setup.md
 ├── install.sh                   # local-dev install/uninstall helper
