@@ -1,19 +1,17 @@
 # Brave Search — Cursor plugin
 
 Brave Search skills and `bx` CLI commands for the [Cursor](https://cursor.com)
-AI agent: token-budgeted web grounding, ranked web results, news, images, and
-videos — all through Brave's
+AI agent: token-budgeted grounding for docs and errors, forum threads, and
+recent releases and security advisories — all through Brave's
 [independent web index](https://brave.com/search/api/).
 
 ## Features
 
 | Capability                       | Skill                 | Command                                                              |
 | -------------------------------- | --------------------- | -------------------------------------------------------------------- |
-| **All-in-one CLI (recommended)** | `bx`                  | `/bx-search`, `/bx-news`, `/bx-images`, `/bx-videos`, `/bx-debug`    |
+| **All-in-one CLI (recommended)** | `bx`                  | `/bx-search`, `/bx-debug`, `/bx-news`                                |
 | **RAG / LLM grounding**          | `brave-llm-context`   | (covered by `/bx-search`)                                            |
-| **News**                         | `brave-news-search`   | `/bx-news`                                                           |
-| **Images**                       | `brave-images-search` | `/bx-images`                                                         |
-| **Videos**                       | `brave-videos-search` | `/bx-videos`                                                         |
+| **Releases & advisories**        | `brave-news-search`   | `/bx-news`                                                           |
 | **Setup / status**               | —                     | `/bx-setup`, `/bx-status` (then `/bx-install`, `/bx-set-key`)        |
 
 Plus a short always-on rule (`rules/prefer-bx-for-web-search.mdc`) that
@@ -22,8 +20,8 @@ blocking other search tools.
 
 ## Prerequisites
 
-1. Get a Brave Search API key at <https://api-dashboard.search.brave.com/app/keys>. All plans
-   include $5/month of free credits.
+1. Get a Brave Search API key at <https://api-dashboard.search.brave.com/app/keys>. The
+   Search plan covers everything here and includes $5/month of free credits.
 2. Run `/bx-setup` from chat. One env name, `BRAVE_API_KEY`, covers both `/bx-*`
    and curl — set it in the environment or run `bx config set-key`. See
    [`docs/api-key-setup.md`](docs/api-key-setup.md).
@@ -41,7 +39,7 @@ blocking other search tools.
 
    Then `/bx-set-key` (or `bx config set-key` interactively).
 
-> The 4 raw-API skills (everything except `bx`) work without the CLI — they
+> The 2 raw-API skills (everything except `bx`) work without the CLI — they
 > teach the agent to call the Brave Search API directly with `curl`. Slash
 > commands prefer `bx`, then curl. Ranked SERP hits use `bx web` (no
 > dedicated curl skill).
@@ -93,10 +91,8 @@ node scripts/validate-template.mjs
 /bx-setup
 /bx-status
 /bx-search how do Rust lifetimes work
-/bx-news Next.js 15 release
 /bx-debug TypeError cannot unpack non-iterable NoneType
-/bx-images rust ownership diagram
-/bx-videos rustconf 2026 keynote
+/bx-news Next.js 15 release
 ```
 
 ## Submitting to the Cursor Marketplace
@@ -121,9 +117,8 @@ Per the [Cursor plugins reference](https://cursor.com/docs/reference/plugins):
 ├── LICENSE                      # MIT
 ├── assets/logo.svg              # marketplace logo
 ├── rules/                       # 1 short awareness rule (prefer bx)
-├── skills/                      # 5 SKILL.md files: bx, brave-llm-context,
-│                                #   brave-news-search, brave-images-search,
-│                                #   brave-videos-search
+├── skills/                      # 3 SKILL.md files: bx, brave-llm-context,
+│                                #   brave-news-search
 ├── commands/                    # /bx-* slash commands (setup, search, status, …)
 ├── docs/api-key-setup.md
 ├── install.sh                   # local-dev install/uninstall helper

@@ -10,8 +10,7 @@ You have access to Brave Search via the `bx` CLI. Use it proactively when releva
 - **Live web, docs, errors, fact-check**: `bx "<query>"` (token-budgeted RAG)
 - **Ranked hits / forums / SERP**: `bx web "<query>"`
 - **Comparisons / multi-source questions**: run several narrowed `bx "<query>"` calls and synthesize yourself
-- **News**: `bx news "<query>"`
-- **Images / videos**: `bx images`, `bx videos`
+- **Releases, advisories, deprecations, outages**: `bx news "<query>"`
 
 Prefer these over hand-rolled curl/scrape. Cite claims as `[title](url)` from search output only. If `bx` is missing, fall back to the matching raw-API skill's `curl` call; if that cannot authenticate either, tell the user to run `/bx-setup` (then `/bx-status`).
 

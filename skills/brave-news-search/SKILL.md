@@ -1,6 +1,6 @@
 ---
 name: brave-news-search
-description: "Returns recent news articles (title, URL, description, publication age) from Brave Search, with freshness windows and Goggles. Use when the user asks for latest news, breaking stories, security advisories, or current events. Prefer `bx news` when the CLI is on PATH."
+description: "Returns recent, dated news articles (title, URL, description, publication age) from Brave Search, with freshness windows and Goggles. Use for time-sensitive developer questions: whether a release has shipped and what it breaks, security advisories or CVEs for a dependency, deprecations, or an outage at a service the project depends on. Prefer `bx news` when the CLI is on PATH."
 allowed-tools: Bash(echo:*), Bash(curl:*), Bash(bx:*)
 compatibility: Requires `curl` 7.76+ (for `--fail-with-body`), a Brave Search API key (`BRAVE_API_KEY`), and network access to api.search.brave.com.
 ---
@@ -10,6 +10,10 @@ compatibility: Requires `curl` 7.76+ (for `--fail-with-body`), a Brave Search AP
 Find recent news for: $ARGUMENTS
 
 If the line above still reads literally `$ARGUMENTS`, or is blank, use the user's latest request.
+
+## When to pick this skill
+
+Use when the answer depends on _when_ something happened — a release, an advisory, a deprecation, an outage. For how-to questions and docs, use `brave-llm-context`. Coverage can trail or misreport the official source, so confirm version numbers and breaking changes against the project's own release notes or changelog.
 
 ## Canonical call
 
@@ -27,20 +31,20 @@ Default `safesearch` is `strict` for news (stricter than web search) — pass `s
 
 | Param                              | Use when                                                         |
 | ---------------------------------- | ---------------------------------------------------------------- |
-| `freshness=pd`                     | Past day — breaking news, security advisories                    |
+| `freshness=pd`                     | Past day — new CVEs, ongoing outages, same-day releases          |
 | `freshness=pw`                     | Past week (sensible default for most queries)                    |
-| `freshness=pm`                     | Past month — slow-moving stories, trend pieces                   |
+| `freshness=pm`                     | Past month — a release cycle, deprecation notices                |
 | `freshness=py`                     | Past year                                                        |
 | `freshness=YYYY-MM-DDtoYYYY-MM-DD` | Custom date range                                                |
 | `count` (1–50)                     | Result count                                                     |
-| `goggles`                          | Curate sources — boost authoritative outlets, suppress SEO blogs |
+| `goggles`                          | Curate sources — boost the project's own channels, suppress SEO blogs |
 
-Common goggle pattern (suppress SEO noise, boost wires):
+Common goggle pattern (suppress SEO noise, boost the project's own blog and GitHub so the release post outranks coverage of it):
 
 ```bash
 --data-urlencode 'goggles=$discard,site=medium.com
-$boost=5,site=reuters.com
-$boost=5,site=apnews.com'
+$boost=5,site=nextjs.org
+$boost=3,site=github.com'
 ```
 
 ## Response shape

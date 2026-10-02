@@ -1,6 +1,6 @@
 ---
 name: bx
-description: "DEFAULT for live web lookups. Searches Brave's independent index via the bx CLI — token-budgeted RAG, ranked web results, news, images, videos, and Goggles ranking. Use when the user asks to search, look up, browse, ground, fact-check, find docs, research a topic, or needs current information beyond training data. Do not trigger for local files, git, or code edits that need no live web data."
+description: "DEFAULT for live web lookups. Searches Brave's independent index via the bx CLI — token-budgeted RAG, ranked web results, forum threads, recent releases and advisories, and Goggles ranking. Use when the user asks to search, look up, browse, ground, fact-check, find docs, research a topic, or needs current information beyond training data. Do not trigger for local files, git, or code edits that need no live web data."
 allowed-tools: Bash(echo:*), Bash(bx:*)
 compatibility: Requires the `bx` CLI on PATH and network access to api.search.brave.com.
 ---
@@ -18,15 +18,13 @@ All output is JSON on stdout; errors go to stderr.
 | Your need                                 | Command                                      | Read from                                                      |
 | ----------------------------------------- | -------------------------------------------- | -------------------------------------------------------------- |
 | **Docs, errors, code patterns** (default) | `bx "query"`                                 | `.grounding.generic[]` -> `{url, title, snippets[]}`           |
-| Traditional ranked results                | `bx web "query"`                             | `.web.results[]`; also `.news`, `.videos`, `.discussions`      |
+| Traditional ranked results                | `bx web "query"`                             | `.web.results[]`; also `.news`, `.discussions`                 |
 | Forums / solutions                        | `bx web "query" --result-filter discussions` | `.discussions.results[]`                                       |
-| Latest news / recent events               | `bx news "query" --freshness pd`             | `.results[]` -> `{title, url, age}`                            |
-| Images (up to 200 results)                | `bx images "query"`                          | `.results[]` -> `{title, url, thumbnail.src}`                  |
-| Videos (duration, views, creator)         | `bx videos "query"`                          | `.results[]` -> `{title, url, video.duration}`                 |
+| Releases, advisories, deprecations        | `bx news "query" --freshness pw`             | `.results[]` -> `{title, url, age}`                            |
 | Boost/filter specific domains             | `bx "query" --include-site docs.rs`          | see Goggles below                                              |
 | Manage the API key                        | `bx config set-key\|show-key\|path\|show`    | —                                                              |
 
-For `context`, `.sources[<url>]` carries `title`, `hostname`, and `age` — use `age` for the page date (published or last modified) in citations. `bx web` has no `.sources`. `bx places` (local/POI search) also exists but has no slash command in this plugin.
+For `context`, `.sources[<url>]` carries `title`, `hostname`, and `age` — use `age` for the page date (published or last modified) in citations. `bx web` has no `.sources`.
 
 Every subcommand takes the query as a required positional argument. When the query is itself a subcommand name, name the subcommand explicitly — `bx context "web" --max-tokens 4096` — because `bx "web" --max-tokens 4096` parses as the `web` subcommand and exits 2.
 
@@ -96,15 +94,13 @@ Never run `bx config show-key` to diagnose an auth failure. Its output is masked
 ## Notes
 
 - **Global flags**: `--api-key KEY`, `--timeout SECS` (default 30), `--extra KEY=VALUE` (repeatable, adds arbitrary API parameters). Prefer a configured key over `--api-key` — flag values show up in `ps`.
-- **Location awareness**: `context` and `web` support `--lat`, `--long`, `--city`, `--state`, `--state-name`, `--loc-country`, `--postal-code`, `--timezone`
 - **Help**: `bx --help` for all commands; `bx <command> --help` for per-command flags
 
 ## If `bx` is not available
 
 1. Try `bx --version`. If it works, use `bx`.
 2. If `bx` is missing, call the matching raw-API skill with `curl` +
-   `BRAVE_API_KEY` (`brave-llm-context`, `brave-news-search`,
-   `brave-images-search`, `brave-videos-search`).
+   `BRAVE_API_KEY` (`brave-llm-context` or `brave-news-search`).
    There is no curl skill for traditional SERP hits — that path is
    `bx web`.
 3. If neither can authenticate, **stop**. Tell the user to run
