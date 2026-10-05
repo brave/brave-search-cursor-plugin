@@ -55,18 +55,16 @@ Open Cursor → Customize → Plugins (or the marketplace panel) → search
 
 ```bash
 bash install.sh                 # copy into ~/.cursor/plugins/local
-bash install.sh --symlink       # symlink instead (often ignored by Cursor)
 # ...edit code, re-run install.sh, then: Cmd/Ctrl+Shift+P → Developer: Reload Window
 bash install.sh --uninstall     # tear down
 ```
 
-The script **copies** this checkout into
+The script **copies** the plugin files of this checkout into
 `~/.cursor/plugins/local/brave-search`. Cursor currently rejects
 local-plugin symlinks whose target is outside that directory, so a copy is
 what actually loads. Re-run `install.sh` after you edit the plugin, then
-reload. `--symlink` is opt-in for builds that allow live iteration. If the
-plugin still does not appear after a reload, confirm the copy exists at that
-path and see the
+reload. If the plugin still does not appear after a reload, confirm the copy
+exists at that path and see the
 [Cursor plugins reference](https://cursor.com/docs/reference/plugins).
 
 After install, reload Cursor and verify in chat that the `bx` skill and

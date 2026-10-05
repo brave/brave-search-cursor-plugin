@@ -42,19 +42,33 @@ jobs:
             fi
           done
 
-      - name: Install/uninstall cycle keeps local secrets out of the copy
+      - name: Install/uninstall cycle ships only plugin files and spares clones
         run: |
           home="$(mktemp -d)"
-          printf 'export BRAVE_API_KEY=secret\n' > .envrc
-          printf 'K=secret\n' > .env.production
-          HOME="$home" bash install.sh
           dst="$home/.cursor/plugins/local/brave-search"
-          test -f "$dst/.cursor-plugin/plugin.json"
-          if find "$dst" -maxdepth 1 \( -name '.env*' -o -name '.direnv' \) | grep -q .; then
-            echo "error: a local secret file was copied into the plugin dir" >&2
+          printf 'export BRAVE_SEARCH_API_KEY=secret\n' > .envrc
+          printf 'K=secret\n' > docs/.env
+          HOME="$home" bash install.sh
+          HOME="$home" bash install.sh
+          # Every tracked top-level entry except dev-only ones, so a new plugin
+          # directory missing from install.sh's PLUGIN_FILES fails here.
+          expected="$(git ls-files | cut -d/ -f1 | LC_ALL=C sort -u \
+            | grep -vxE '\.github|\.gitignore|install\.sh|scripts' | tr '\n' ' ')"
+          actual="$(cd "$dst" && LC_ALL=C ls -A | tr '\n' ' ')"
+          if [ "$actual" != "$expected" ]; then
+            echo "error: installed top level is '$actual', expected '$expected'" >&2
             exit 1
           fi
+          test ! -e "$dst/docs/.env"
           HOME="$home" bash install.sh --uninstall
           test ! -e "$dst"
           test -z "$(find "$home/.cursor/plugins/local" -maxdepth 1 -name '.brave-search.tmp.*')"
-          rm -f .envrc .env.production
+          # A clone at the plugin path is never replaced or removed.
+          mkdir -p "$dst/.git" && cp -R .cursor-plugin "$dst/"
+          if HOME="$home" bash install.sh; then
+            echo "error: install replaced a clone" >&2
+            exit 1
+          fi
+          HOME="$home" bash install.sh --uninstall
+          test -d "$dst/.git"
+          rm -rf "$home" .envrc docs/.env
