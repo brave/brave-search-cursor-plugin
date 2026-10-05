@@ -26,21 +26,6 @@ async function pathExists(p) {
   }
 }
 
-// Walk up from `start` until we find a directory containing
-// `.cursor-plugin/plugin.json`. Lets the validator be invoked from anywhere,
-// not just the repo root.
-async function findRepoRoot(start) {
-  let dir = start;
-  while (true) {
-    if (await pathExists(path.join(dir, ".cursor-plugin", "plugin.json"))) {
-      return dir;
-    }
-    const parent = path.dirname(dir);
-    if (parent === dir) return null;
-    dir = parent;
-  }
-}
-
 async function readJsonFile(filePath, context) {
   let raw;
   try {
@@ -57,10 +42,6 @@ async function readJsonFile(filePath, context) {
   }
 }
 
-function normalizeNewlines(content) {
-  return content.replace(/\r\n/g, "\n");
-}
-
 // Strip surrounding "..." or '...' quotes from a frontmatter value.
 function stripQuotes(value) {
   if (value.length >= 2) {
@@ -73,19 +54,9 @@ function stripQuotes(value) {
   return value;
 }
 
-function parseFrontmatter(content, rel) {
-  const normalized = normalizeNewlines(content);
-  if (!normalized.startsWith("---\n")) return null;
-  const closingIndex = normalized.indexOf("\n---\n", 4);
-  if (closingIndex === -1) {
-    // Allow `---` at very end of file (no trailing newline).
-    if (normalized.endsWith("\n---")) {
-      addWarning(`frontmatter in ${rel} is missing the trailing newline after "---"`);
-      return parseBlock(normalized.slice(4, normalized.length - 4));
-    }
-    return null;
-  }
-  return parseBlock(normalized.slice(4, closingIndex));
+function parseFrontmatter(content) {
+  const m = /^---\n([\s\S]*?)\n---(?:\n|$)/.exec(content.replace(/\r\n/g, "\n"));
+  return m ? parseBlock(m[1]) : null;
 }
 
 function parseBlock(block) {
@@ -125,18 +96,6 @@ function isSafeRelativePath(value) {
   return !normalized.startsWith("../") && normalized !== "..";
 }
 
-function extractPathValues(value) {
-  if (typeof value === "string") return [value];
-  if (Array.isArray(value)) return value.flatMap(extractPathValues);
-  if (value && typeof value === "object") {
-    const out = [];
-    if (typeof value.path === "string") out.push(value.path);
-    if (typeof value.file === "string") out.push(value.file);
-    return out;
-  }
-  return [];
-}
-
 async function validateReferencedPath(repoRoot, fieldName, value) {
   if (value.startsWith("http://")) {
     addError(
@@ -160,13 +119,13 @@ async function validateReferencedPath(repoRoot, fieldName, value) {
 async function validateFrontmatterFile(repoRoot, filePath, componentName, requiredKeys) {
   const content = await fs.readFile(filePath, "utf8");
   const rel = path.relative(repoRoot, filePath);
-  const parsed = parseFrontmatter(content, rel);
+  const parsed = parseFrontmatter(content);
   if (!parsed) {
     addError(`${componentName} file missing YAML frontmatter: ${rel}`);
     return null;
   }
   for (const key of requiredKeys) {
-    if (!parsed[key] || parsed[key].length === 0) {
+    if (!parsed[key]) {
       addError(`${componentName} file missing "${key}" in frontmatter: ${rel}`);
     }
   }
@@ -184,25 +143,26 @@ async function validateComponentDirs(repoRoot) {
     }
   }
 
+  // Cursor discovers skills only as skills/<name>/SKILL.md.
   const skillsDir = path.join(repoRoot, "skills");
   if (await pathExists(skillsDir)) {
-    for (const f of await walkFiles(skillsDir)) {
-      if (path.basename(f) === "SKILL.md") {
-        const parsed = await validateFrontmatterFile(repoRoot, f, "skill", [
-          "name",
-          "description",
-        ]);
-        const dirName = path.basename(path.dirname(f));
-        if (parsed?.name && parsed.name !== dirName) {
-          addError(
-            `skill name "${parsed.name}" does not match directory "${dirName}" (${path.relative(repoRoot, f)}).`
-          );
-        }
-        if (parsed?.description && parsed.description.length > 1024) {
-          addError(
-            `skill description exceeds 1024 characters in ${path.relative(repoRoot, f)}.`
-          );
-        }
+    for (const entry of await fs.readdir(skillsDir, { withFileTypes: true })) {
+      if (!entry.isDirectory()) continue;
+      const f = path.join(skillsDir, entry.name, "SKILL.md");
+      if (!(await pathExists(f))) {
+        addError(
+          `skills/${entry.name}/ does not contain a SKILL.md file (required for Cursor skill discovery).`
+        );
+        continue;
+      }
+      const parsed = await validateFrontmatterFile(repoRoot, f, "skill", ["name", "description"]);
+      if (parsed?.name && parsed.name !== entry.name) {
+        addError(
+          `skill name "${parsed.name}" does not match directory "${entry.name}" (${path.relative(repoRoot, f)}).`
+        );
+      }
+      if (parsed?.description && parsed.description.length > 1024) {
+        addError(`skill description exceeds 1024 characters in ${path.relative(repoRoot, f)}.`);
       }
     }
   }
@@ -287,7 +247,7 @@ async function validateBxQuoting(repoRoot) {
     const files = stat.isDirectory() ? await walkFiles(target) : [target];
     for (const f of files) {
       if (![".md", ".mdc", ".markdown", ".txt"].includes(path.extname(f).toLowerCase())) continue;
-      const lines = normalizeNewlines(await fs.readFile(f, "utf8")).split("\n");
+      const lines = (await fs.readFile(f, "utf8")).replace(/\r\n/g, "\n").split("\n");
       for (const { line, cmd } of bxCalls(lines)) {
         const { code, doubleQuoted } = scanShell(cmd);
         // `</dev/null`, `>/dev/null` and friends may follow the query.
@@ -319,14 +279,9 @@ function summarize() {
 }
 
 async function main() {
-  // Locate the repo root from the script's own location, then fall back to
-  // process.cwd() so the validator works whether invoked as
-  // `node scripts/validate-template.mjs` (from repo root) or by absolute path.
-  const scriptDir = path.dirname(fileURLToPath(import.meta.url));
-  const repoRoot =
-    (await findRepoRoot(scriptDir)) ||
-    (await findRepoRoot(process.cwd())) ||
-    process.cwd();
+  // The repo this script lives in, wherever it is invoked from. Searching
+  // upward or falling back to the cwd validated some other repo instead.
+  const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
   const manifestPath = path.join(repoRoot, ".cursor-plugin", "plugin.json");
   const manifest = await readJsonFile(manifestPath, "Plugin manifest");
@@ -370,34 +325,14 @@ async function main() {
 
   const fields = ["logo", "rules", "skills", "agents", "commands", "hooks", "mcpServers"];
   for (const f of fields) {
-    if (manifest[f] === undefined) continue;
-    for (const v of extractPathValues(manifest[f])) {
-      await validateReferencedPath(repoRoot, f, v);
+    // A string or array of strings is a path; inline hooks/mcpServers objects aren't.
+    for (const v of [manifest[f]].flat()) {
+      if (typeof v === "string") await validateReferencedPath(repoRoot, f, v);
     }
   }
 
   await validateComponentDirs(repoRoot);
   await validateBxQuoting(repoRoot);
-
-  const skillsDir = path.join(repoRoot, "skills");
-  if (await pathExists(skillsDir)) {
-    const entries = await fs.readdir(skillsDir, { withFileTypes: true });
-    let foundAny = false;
-    for (const entry of entries) {
-      if (!entry.isDirectory()) continue;
-      const skillFile = path.join(skillsDir, entry.name, "SKILL.md");
-      if (!(await pathExists(skillFile))) {
-        addError(
-          `skills/${entry.name}/ does not contain a SKILL.md file (required for Cursor skill discovery).`
-        );
-      } else {
-        foundAny = true;
-      }
-    }
-    if (!foundAny) {
-      addWarning("skills/ exists but contains no skills with a SKILL.md file.");
-    }
-  }
 
   summarize();
 }
