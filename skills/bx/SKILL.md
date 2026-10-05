@@ -85,7 +85,7 @@ bx "axum middleware authentication" --max-tokens 4096
 # 2. Too general? Narrow with a strict threshold
 bx "axum middleware tower layer authentication example" --threshold strict --max-tokens 4096
 # 3. Still thin? Look for forum threads with a working fix
-bx web "axum jwt middleware" --result-filter discussions
+bx web "axum jwt authentication middleware" --result-filter discussions
 ```
 
 For comparisons or multi-part questions, run one narrowed query per facet and
