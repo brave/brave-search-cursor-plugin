@@ -16,7 +16,7 @@ the key out of shell history and process listings.
    the config:
 
    ```bash
-   bx web --count 1 -- 'test' </dev/null   # no stdin: with no key, bx fails fast instead of prompting
+   echo '' | bx web --count 1 -- 'test'   # piped stdin: with no key, bx fails fast instead of prompting
    ```
 
    Exit 0 means a key is already working — ask the user whether to overwrite
@@ -59,7 +59,7 @@ the key out of shell history and process listings.
 4. **Verify** by re-running the smoke test:
 
    ```bash
-   bx web --count 1 -- 'test' </dev/null   # no stdin: with no key, bx fails fast instead of prompting
+   echo '' | bx web --count 1 -- 'test'   # piped stdin: with no key, bx fails fast instead of prompting
    ```
 
    Exit 0 means the key works. Otherwise read stderr rather than guessing from

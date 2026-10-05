@@ -10,7 +10,7 @@ Diagnose whether this plugin can search. **Never print the API key.**
 ## 1. CLI
 
 ```bash
-command -v bx && bx --version
+bx --version
 ```
 
 - Missing → tell the user to run `/bx-install` (then `/bx-setup`). Stop.
@@ -22,7 +22,7 @@ Skip if `bx` is missing. One command answers both "is a key configured?" and
 "does it work?":
 
 ```bash
-bx web --count 1 -- 'test' </dev/null   # no stdin: with no key, bx fails fast instead of prompting
+echo '' | bx web --count 1 -- 'test'   # piped stdin: with no key, bx fails fast instead of prompting
 ```
 
 Don't probe for a key by name first. `bx` accepts a key from an env var or its
