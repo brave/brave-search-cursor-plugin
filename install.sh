@@ -5,8 +5,8 @@
 # ~/.cursor/plugins/local, so the default is a real copy. Re-run this script
 # after you edit the checkout, then reload Cursor.
 #
-# This is the local-development install. The marketplace install (after
-# submission) doesn't need any of this — Cursor handles registration itself.
+# This is the local-development install. The marketplace install doesn't need
+# any of this — Cursor handles registration itself.
 
 set -euo pipefail
 
@@ -79,9 +79,9 @@ copy_plugin_files() {
     for pattern in "${COPY_EXCLUDES[@]}"; do
       excludes+=(--exclude "$pattern")
     done
-    # --delete alone keeps excluded files in the destination forever, so an
-    # `.envrc` an older version of this script copied would survive every
-    # reinstall. --delete-excluded removes it.
+    # --delete alone keeps excluded files that are already in the destination,
+    # so a stray `.envrc` there would survive every reinstall.
+    # --delete-excluded removes it.
     rsync -a --delete --delete-excluded "${excludes[@]}" "$SCRIPT_DIR/" "$PLUGIN_DIR/"
     return
   fi
@@ -174,7 +174,7 @@ echo ""
 echo "Installed. Next steps:"
 echo "  1. Reload Cursor (Cmd/Ctrl+Shift+P → Developer: Reload Window)."
 echo "  2. The plugin should appear under Customize → Plugins."
-echo "  3. Skills appear under Customize → Skills; /bx-* commands in the slash menu."
+echo "  3. The bx skill appears under Customize → Skills; /bx-* commands in the slash menu."
 echo "  4. Run /bx-setup (install bx and set the CLI key)."
 echo "  5. Run /bx-status to verify."
 if [ "$USE_SYMLINK" -eq 0 ]; then

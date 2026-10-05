@@ -50,8 +50,7 @@ Open Cursor → Customize → Plugins (or the marketplace panel) → search
   appear in the chat `/` menu.
 - The prefer-bx awareness rule is on by default; toggle it under
   **Customize → Rules**.
-- First-run: `/bx-setup`. `BRAVE_API_KEY` in the environment (or
-  `/bx-set-key`) starts the CLI. Run `/bx-status` to verify.
+- First run: `/bx-setup`, then `/bx-status` to verify.
 
 ### Local development
 
@@ -87,18 +86,6 @@ node scripts/validate-template.mjs
 /bx-debug TypeError cannot unpack non-iterable NoneType
 ```
 
-## Submitting to the Cursor Marketplace
-
-Per the [Cursor plugins reference](https://cursor.com/docs/reference/plugins):
-
-1. Push this repo to a public Git host (GitHub).
-2. Update `repository` and `homepage` in `.cursor-plugin/plugin.json` to
-   point at the **public** GitHub repo you submit (logo paths resolve from
-   that URL). The current `repository` field assumes
-   `github.com/brave/brave-search-cursor-plugin`.
-3. Submit at <https://cursor.com/marketplace/publish>. Plugins are manually
-   reviewed before listing.
-
 ## Layout
 
 ```text
@@ -109,7 +96,7 @@ Per the [Cursor plugins reference](https://cursor.com/docs/reference/plugins):
 ├── LICENSE                      # MIT
 ├── assets/logo.svg              # marketplace logo
 ├── rules/                       # 1 short awareness rule (prefer bx)
-├── skills/bx/SKILL.md            # the bx skill
+├── skills/bx/SKILL.md           # the bx skill
 ├── commands/                    # /bx-* slash commands (setup, search, status, …)
 ├── docs/api-key-setup.md
 ├── install.sh                   # local-dev install/uninstall helper
@@ -118,7 +105,7 @@ Per the [Cursor plugins reference](https://cursor.com/docs/reference/plugins):
 
 ## Credits
 
-- Skills are derived from [`brave/brave-search-skills`](https://github.com/brave/brave-search-skills) (MIT, © Brave Software).
+- The `bx` skill is derived from [`brave/brave-search-skills`](https://github.com/brave/brave-search-skills) (MIT, © Brave Software).
 - The `bx` CLI lives at [`brave/brave-search-cli`](https://github.com/brave/brave-search-cli) (MPL-2.0, © Brave Software).
 
 ## License

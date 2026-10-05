@@ -17,7 +17,7 @@ Everything goes through the `bx` CLI, which reads the key from the
    and includes **$5/month of free credits** (~1,000 queries).
 3. Open **API Keys** in the dashboard and generate a key.
 
-> **Security tip:** prefer agent-native config or directory-scoped env vars
+> **Security tip:** prefer the `bx` config file or a directory-scoped env var
 > over a global shell profile. Coding agents can read every env var your
 > shell exports — scoped configs limit blast radius.
 
@@ -28,8 +28,8 @@ it by hand:
 
 ### Option 1 — `bx config set-key` (recommended)
 
-The cleanest option if you mostly use the `/bx-*` slash commands. The key goes
-into a per-OS config file (not an env var) and never enters shell history:
+The key goes into a per-OS config file (not an env var) and never enters shell
+history:
 
 ```bash
 bx config set-key                    # interactive — prompts, no shell history
@@ -100,7 +100,7 @@ full exit-code table.
 | ------------------------------------------------------ | --------------------------------------------------- | ---------------------------------------------------------------------- |
 | `No API key found`                                      | No key set anywhere                                 | Run `bx config set-key` or `export BRAVE_API_KEY=...`                  |
 | `subscription token invalid (422)`                      | Bad / expired key                                   | Rotate at <https://api-dashboard.search.brave.com/app/keys> and re-set |
-| `validation (422)`                                      | The request was rejected, usually a query over 600 characters               | Shorten the query; the key is fine                   |
+| `validation (422)`                                      | Request rejected, usually a query over 600 chars    | Shorten the query; the key is fine                                     |
 | HTTP 401 / 403                                          | Key recognized but not permitted                    | Check the key has an active Search plan in the dashboard               |
 | HTTP 429                                                | Rate limited                                        | Back off and retry, or upgrade plan                                    |
 | `bx` works in terminal, not in Cursor chat             | Cursor was launched before the env var was set      | Fully quit Cursor and relaunch from a fresh shell                      |

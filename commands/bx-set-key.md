@@ -77,13 +77,12 @@ based config also works — `bx` resolves `BRAVE_API_KEY` automatically:
   the window is not enough, since Cursor inherits env vars from the shell that
   spawned it).
 
-See [`docs/api-key-setup.md`](../docs/api-key-setup.md) for the full setup
-matrix (Cursor).
+See [`docs/api-key-setup.md`](../docs/api-key-setup.md) for all setup options.
 
 ## Notes
 
-- Get a key at <https://api-dashboard.search.brave.com/app/keys>. All plans include $5/month of
-  free credits.
+- Get a key at <https://api-dashboard.search.brave.com/app/keys>. The Search
+  plan covers everything this plugin does and includes $5/month of free credits.
 - Resolution priority in `bx`, highest first: `--api-key` flag,
   `BRAVE_SEARCH_API_KEY`, `BRAVE_API_KEY`, config file. So a config file
   written by this command does **not** override an env var the user already

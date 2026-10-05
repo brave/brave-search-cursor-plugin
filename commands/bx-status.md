@@ -25,9 +25,9 @@ Skip if `bx` is missing. One command answers both "is a key configured?" and
 bx web "test" --count 1
 ```
 
-Don't probe for a key by name first. `bx` accepts a key from an env var, its
-config file, or a legacy key file, and this call exercises the whole chain — so
-it passes for users whose key arrives by a route this doc never mentions.
+Don't probe for a key by name first. `bx` accepts a key from an env var or its
+config file, and this call exercises the whole chain — so it passes however
+the user configured the key.
 
 **Read stderr, not just the exit code.** An invalid key exits **1**, not 3,
 because the API reports it as HTTP 422 — and a query over the length cap
@@ -42,10 +42,6 @@ reports 422 as well, so the message is what separates them.
 | 4    | Rate limited (429)                | Key works; wait or upgrade plan                                                                                                                                                                                                                                                           |
 | 5    | Network/server (5xx)              | Retry; check connectivity to api.search.brave.com                                                                                                                                                                                                                                         |
 | 127  | npm launcher could not start `bx` | Reinstall via `/bx-install`; check platform support                                                                                                                                                                                                                                       |
-
-`No API key found` is the one message that spans two codes — current `bx` exits
-2 for it, builds before 1.7.0 exit 1. Either way the fix is the same, which is
-why the message beats the code.
 
 ## 3. Report
 
