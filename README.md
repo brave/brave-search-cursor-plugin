@@ -13,8 +13,7 @@ recent releases and security advisories — all through Brave's
 | **Setup / status**                  | —     | `/bx-setup`, `/bx-status` (then `/bx-install`, `/bx-set-key`) |
 
 Plus a short always-on rule (`rules/prefer-bx-for-web-search.mdc`) that
-nudges the agent toward `bx` when a lookup needs live web data, without
-blocking other search tools.
+nudges the agent toward `bx` when a lookup needs live web data.
 
 ## Prerequisites
 

@@ -90,13 +90,12 @@ bx web --result-filter discussions -- 'axum jwt authentication middleware'
 For comparisons or multi-part questions, run one narrowed query per facet and
 synthesize the answer yourself from the collected snippets, citing each source.
 
-## Exit Codes
+## Errors
 
-**Match stderr, not the exit code.** Two different failures both report 422:
-`subscription token invalid (422)` is a bad or expired key — tell the user to
-run `/bx-set-key`. `validation (422)` is a rejected request, most often a query
-over the 600-character length cap — shorten the query and leave the key alone.
-`No API key found` means no key is configured anywhere. `/bx-status` carries the full exit-code table.
+**Read stderr, not the exit code** — it says what went wrong (query too long,
+invalid key, plan, rate limit) and usually what to do. Fix what you can, like
+shortening the query. For `No API key found` or `subscription token invalid`,
+stop and tell the user to run `/bx-set-key`.
 
 Never run `bx config show-key` to diagnose an auth failure. Its output is masked (`BSAH...TppZ`), so it tells you nothing useful, and it puts key-shaped text in context for no reason. Use `/bx-set-key` instead.
 

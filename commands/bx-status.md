@@ -29,19 +29,15 @@ Don't probe for a key by name first. `bx` accepts a key from an env var or its
 config file, and this call exercises the whole chain — so it passes however
 the user configured the key.
 
-**Read stderr, not just the exit code.** An invalid key exits **1**, not 3,
-because the API reports it as HTTP 422 — and a query over the length cap
-reports 422 as well, so the message is what separates them.
+Exit 0 means it works. Otherwise **read stderr** — `bx` and the API say what
+went wrong (invalid key, query too long, plan, rate limit, network) — and
+relay that. The exit code alone is ambiguous: most failures exit 1.
 
-| Exit | Meaning                           | Next step                                                                                                                                                                                                                                                                                 |
-| ---- | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 0    | Working                           | CLI path is good                                                                                                                                                                                                                                                                          |
-| 1    | Request made, result unusable     | Match stderr: `subscription token invalid (422)` → bad/expired key, rotate at https://api-dashboard.search.brave.com/app/keys and `/bx-set-key`. `validation (422)` → the request was rejected, usually a query over 600 characters; shorten it and leave the key alone. |
-| 2    | Usage, config, or no API key      | Read stderr: `No API key found` → run `/bx-set-key` or export `BRAVE_API_KEY`; otherwise fix the flags                                                                                                                                                                                    |
-| 3    | Auth/permission (401/403)         | Key is recognized but not permitted — check it has an active Search plan in the dashboard                                                                                                                                                                                                |
-| 4    | Rate limited (429)                | Key works; wait or upgrade plan                                                                                                                                                                                                                                                           |
-| 5    | Network/server (5xx)              | Retry; check connectivity to api.search.brave.com                                                                                                                                                                                                                                         |
-| 127  | npm launcher could not start `bx` | Reinstall via `/bx-install`; check platform support                                                                                                                                                                                                                                       |
+For `No API key found` or `subscription token invalid`, point the user to
+`/bx-set-key` rather than the commands `bx` suggests: `set-key <KEY>` and
+`--api-key` put the key in shell history and `ps`. An exported
+`BRAVE_SEARCH_API_KEY` or `BRAVE_API_KEY` overrides the config file, so an
+invalid key has to be fixed where it is set.
 
 ## 3. Report
 

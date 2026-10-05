@@ -24,6 +24,17 @@ the key out of shell history and process listings.
    about the config file, so it reports "no API key configured" for a user
    whose key comes from the environment.
 
+   Whether or not the test passed, check for a key in the environment (this
+   prints variable names only):
+
+   ```bash
+   env | grep -oE '^BRAVE_(SEARCH_)?API_KEY='
+   ```
+
+   If either is set, `bx` reads it before the config file, so step 3 would
+   have no effect — working key or not. Have the user change or unset the
+   variable where it is exported (shell profile, `.envrc`) instead.
+
 3. **Ask the user to run interactive set-key in their own terminal** — it
    prompts for input the agent can't type:
 
@@ -52,10 +63,8 @@ the key out of shell history and process listings.
    ```
 
    Exit 0 means the key works. Otherwise read stderr rather than guessing from
-   the code: `subscription token invalid` means re-issue the key at
-   <https://api-dashboard.search.brave.com/app/keys>, `No API key found` means
-   nothing is configured. [`/bx-status`](bx-status.md) has the full exit-code
-   table.
+   the code — it says what went wrong. For `subscription token invalid`, have
+   the user check the key at <https://api-dashboard.search.brave.com/app/keys>.
 
 ## Alternatives the user may prefer
 

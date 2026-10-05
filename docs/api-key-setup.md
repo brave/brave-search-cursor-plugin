@@ -33,7 +33,7 @@ history:
 
 ```bash
 bx config set-key                       # interactive — prompts, no shell history
-bx web --count 1 -- 'test' >/dev/null   # smoke test: exercises every key source
+bx web --count 1 -- 'test'              # smoke test: exercises every key source
 bx config path                          # see where the config lives
 ```
 
@@ -93,17 +93,16 @@ below.
 
 ## Troubleshooting
 
-Match the message on stderr rather than the exit code — `/bx-status` has the
-full exit-code table.
+Read the error message rather than the exit code — `bx` says what went wrong
+(no key, invalid key, query too long, plan, rate limit). Two cases it can't
+explain:
 
-| Symptom                                                | Likely cause                                        | Fix                                                                    |
-| ------------------------------------------------------ | --------------------------------------------------- | ---------------------------------------------------------------------- |
-| `No API key found`                                      | No key set anywhere                                 | Run `bx config set-key` or `export BRAVE_API_KEY=...`                  |
-| `subscription token invalid (422)`                      | Bad / expired key                                   | Rotate at <https://api-dashboard.search.brave.com/app/keys> and re-set |
-| `validation (422)`                                      | Request rejected, usually a query over 600 chars    | Shorten the query; the key is fine                                     |
-| HTTP 401 / 403                                          | Key recognized but not permitted                    | Check the key has an active Search plan in the dashboard               |
-| HTTP 429                                                | Rate limited                                        | Back off and retry, or upgrade plan                                    |
-| `bx` works in terminal, not in Cursor chat             | Cursor was launched before the env var was set      | Fully quit Cursor and relaunch from a fresh shell                      |
+- **A new key has no effect.** An exported `BRAVE_SEARCH_API_KEY` or
+  `BRAVE_API_KEY` wins over the config file, so `bx config set-key` doesn't
+  replace it. Change or unset the variable where you export it.
+- **`bx` works in a terminal but not in Cursor chat.** Cursor was launched
+  before the env var was set. Fully quit Cursor and relaunch it from a fresh
+  shell.
 
 ## Related docs
 
