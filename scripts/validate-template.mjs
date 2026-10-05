@@ -227,14 +227,58 @@ async function validateComponentDirs(repoRoot) {
   }
 }
 
-// A `-H "X-Subscription-Token: $KEY"` header is expanded by the shell before
-// execve, so the plaintext key ends up in curl's argv — and /proc/<pid>/cmdline
-// is world-readable. Documented calls must pipe the header into `curl -H @-`
-// (stdin) instead. The flag group also matches `--header`, `-H"..."` and
-// bundled short options like `-sH`, all of which are the same mistake.
-const argvSecretPattern = /(^|\s)(-[A-Za-z]*H|--header)[=\s'"$\\]*X-Subscription-Token/i;
+// Every bx call carries user or web text on a shell line, and the agent copies
+// the documented shape. Inside double quotes `$(...)` and backticks run (bash
+// and PowerShell), so the query must be single-quoted, last, and after `--`
+// (which also stops `-bash: ...` or `web` parsing as a flag or subcommand).
+// Checks inline code spans and fenced lines; a fenced call whose single quotes
+// are unbalanced (a multi-line --goggles value) continues onto the next lines.
+// A call with no quote at all (`bx context --threshold strict`) names flags, not a query.
+const queryCall = /^bx\s+(?:context\s|web\s|["'])[^]*["']/;
+const queryLast = /\s--\s+'[^']*'$/;
 
-async function validateNoSecretsInArgv(repoRoot) {
+// Drops a trailing `# comment` and reports whether a `"` sits outside single
+// quotes, in one left-to-right pass over the shell text.
+function scanShell(cmd) {
+  let inSingle = false;
+  let doubleQuoted = false;
+  for (let i = 0; i < cmd.length; i++) {
+    const c = cmd[i];
+    if (c === "'") inSingle = !inSingle;
+    else if (!inSingle && c === '"') doubleQuoted = true;
+    else if (!inSingle && c === "#" && (i === 0 || /\s/.test(cmd[i - 1]))) {
+      return { code: cmd.slice(0, i).trimEnd(), doubleQuoted, inSingle };
+    }
+  }
+  return { code: cmd.trimEnd(), doubleQuoted, inSingle };
+}
+
+function bxCalls(lines) {
+  const calls = [];
+  let inFence = false;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (/^\s*```/.test(line)) {
+      inFence = !inFence;
+      continue;
+    }
+    if (!inFence) {
+      for (const m of line.matchAll(/`(bx\s[^`]*)`/g)) calls.push({ line: i + 1, cmd: m[1] });
+      continue;
+    }
+    const m = line.match(/(?:^|[|;&]\s*)(bx\s.*)$/);
+    if (!m) continue;
+    let cmd = m[1].trim();
+    const first = i;
+    while (scanShell(cmd).inSingle && i + 1 < lines.length && !/^\s*```/.test(lines[i + 1])) {
+      cmd += "\n" + lines[++i];
+    }
+    calls.push({ line: first + 1, cmd });
+  }
+  return calls;
+}
+
+async function validateBxQuoting(repoRoot) {
   const roots = ["skills", "commands", "docs", "rules", "README.md"];
   for (const entry of roots) {
     const target = path.join(repoRoot, entry);
@@ -244,18 +288,17 @@ async function validateNoSecretsInArgv(repoRoot) {
     for (const f of files) {
       if (![".md", ".mdc", ".markdown", ".txt"].includes(path.extname(f).toLowerCase())) continue;
       const lines = normalizeNewlines(await fs.readFile(f, "utf8")).split("\n");
-      // Every line is scanned, prose included: the pattern is specific enough
-      // that a warning can be phrased without writing the bad flag out.
-      lines.forEach((line, i) => {
-        if (argvSecretPattern.test(line)) {
+      for (const { line, cmd } of bxCalls(lines)) {
+        const { code, doubleQuoted } = scanShell(cmd);
+        // `</dev/null`, `>/dev/null` and friends may follow the query.
+        const call = code.replace(/(\s+\d?[<>]\S*)+$/, "");
+        if (doubleQuoted || (queryCall.test(call) && !queryLast.test(call))) {
           addError(
-            `${path.relative(repoRoot, f)}:${i + 1} passes the API key in curl's argv ` +
-              `(-H "X-Subscription-Token: ..."), which is world-readable via ps / ` +
-              `/proc/<pid>/cmdline. Pipe the header in on stdin instead: ` +
-              `echo "X-Subscription-Token: $BRAVE_API_KEY" | curl -H @- ...`
+            `${path.relative(repoRoot, f)}:${line} — bx query must be last, after --, in ` +
+              `single quotes, with no double quotes on the line: bx context [flags] -- '<query>'`
           );
         }
-      });
+      }
     }
   }
 }
@@ -334,7 +377,7 @@ async function main() {
   }
 
   await validateComponentDirs(repoRoot);
-  await validateNoSecretsInArgv(repoRoot);
+  await validateBxQuoting(repoRoot);
 
   const skillsDir = path.join(repoRoot, "skills");
   if (await pathExists(skillsDir)) {

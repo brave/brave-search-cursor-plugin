@@ -23,14 +23,14 @@ Before searching, clean up the user's input:
 ## Search
 
 ```bash
-bx "<error>" --threshold strict --max-tokens 4096
+bx context --threshold strict --max-tokens 4096 -- '<error>'
 ```
 
 If results are thin, broaden in this order:
 
 1. Drop the framework keyword.
 2. Drop `--threshold strict` (back to the default).
-3. Try `bx web "<error>" --result-filter discussions` to surface forum threads
+3. Try `bx web --result-filter discussions -- '<error>'` to surface forum threads
    (Stack Overflow, GitHub discussions often have the fix). That response has
    no `.grounding` — read `.discussions.results[]`.
 

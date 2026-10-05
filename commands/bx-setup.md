@@ -19,7 +19,7 @@ Follow [`/bx-install`](bx-install.md). Skip if `bx --version` already works.
 Check whether a key is already configured by using one:
 
 ```bash
-bx web "test" --count 1 </dev/null   # no stdin: with no key, bx fails fast instead of prompting
+bx web --count 1 -- 'test' </dev/null   # no stdin: with no key, bx fails fast instead of prompting
 ```
 
 Exit 0 → a key is set (env var, config file, wherever) and this step is done.

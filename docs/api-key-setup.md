@@ -32,9 +32,9 @@ The key goes into a per-OS config file (not an env var) and never enters shell
 history:
 
 ```bash
-bx config set-key                    # interactive — prompts, no shell history
-bx web "test" --count 1 >/dev/null   # smoke test: exercises every key source
-bx config path                       # see where the config lives
+bx config set-key                       # interactive — prompts, no shell history
+bx web --count 1 -- 'test' >/dev/null   # smoke test: exercises every key source
+bx config path                          # see where the config lives
 ```
 
 Check your setup with the smoke test, not `bx config show-key`: `show-key`
@@ -85,7 +85,7 @@ export BRAVE_API_KEY="your-key"
 After configuring, smoke-test from a Cursor terminal:
 
 ```bash
-bx web "test" --count 1
+bx web --count 1 -- 'test'
 ```
 
 Exit 0 with a JSON result means you're good. Otherwise see Troubleshooting

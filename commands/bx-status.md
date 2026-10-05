@@ -22,7 +22,7 @@ Skip if `bx` is missing. One command answers both "is a key configured?" and
 "does it work?":
 
 ```bash
-bx web "test" --count 1 </dev/null   # no stdin: with no key, bx fails fast instead of prompting
+bx web --count 1 -- 'test' </dev/null   # no stdin: with no key, bx fails fast instead of prompting
 ```
 
 Don't probe for a key by name first. `bx` accepts a key from an env var or its

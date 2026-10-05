@@ -7,7 +7,7 @@ description: "Quick web grounding via the bx CLI (`bx context`) — token-budget
 
 Use the **bx** skill to run a grounded web search for: $ARGUMENTS
 
-Run the default `bx context` flow (`bx "<query>" --max-tokens 4096`) and pull
-results from `.grounding.generic[]`. Add `--include-site <domain>` if the
-user's request implies domain scoping (e.g. "search MDN for ...",
+Run the default `bx context` flow (`bx context --max-tokens 4096 -- '<query>'`)
+and pull results from `.grounding.generic[]`. Add `--include-site <domain>` if
+the user's request implies domain scoping (e.g. "search MDN for ...",
 "on docs.rs"). Add `--threshold strict` if results look too broad.

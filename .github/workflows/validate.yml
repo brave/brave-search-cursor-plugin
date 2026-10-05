@@ -24,16 +24,23 @@ jobs:
       - name: Validate manifest + frontmatter
         run: node scripts/validate-template.mjs
 
-      - name: Validator rejects an API key in curl's argv
+      - name: Validator rejects unsafe bx query quoting
         run: |
-          tmp="$(mktemp -d)"
-          tar --exclude=.git -cf - . | tar -xf - -C "$tmp"
-          printf '\n```bash\ncurl -sH "X-Subscription-Token: $BRAVE_API_KEY" https://api.search.brave.com/\n```\n' \
-            >> "$tmp/docs/api-key-setup.md"
-          if node "$tmp/scripts/validate-template.mjs"; then
-            echo "error: the secret scan should have failed on this snippet" >&2
-            exit 1
-          fi
+          # Double-quoted (also after flags), not last, missing --, inline span.
+          for snippet in \
+            '```bash\nbx context "q"\n```' \
+            '```bash\nbx context --max-tokens 4096 "q"\n```' \
+            "\`\`\`bash\nbx web 'q' --freshness pm\n\`\`\`" \
+            "\`\`\`bash\nbx context 'q' --goggles '\$boost=5,site=docs.rs\n/blog/\$downrank=3'\n\`\`\`" \
+            'Run `bx "q"` now.'; do
+            tmp="$(mktemp -d)"
+            tar --exclude=.git -cf - . | tar -xf - -C "$tmp"
+            printf "\n$snippet\n" >> "$tmp/docs/api-key-setup.md"
+            if node "$tmp/scripts/validate-template.mjs"; then
+              echo "error: the bx quoting check should have failed on: $snippet" >&2
+              exit 1
+            fi
+          done
 
       - name: Install/uninstall cycle keeps local secrets out of the copy
         run: |
