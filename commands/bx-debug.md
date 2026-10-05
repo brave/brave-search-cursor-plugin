@@ -16,9 +16,10 @@ Before searching, clean up the user's input:
   drop request IDs, trace IDs).
 - Add the language / runtime / framework as a keyword if known
   (e.g. `"Python ..."`, `"Rust ..."`, `"Node.js ..."`).
-- Cut the query to 600 characters — the API's cap. A pasted stack trace goes
-  over it easily and comes back as exit 1 / `validation (422)`. Keep the error
-  line and the frames that name the user's own code.
+- Cut the query to 600 characters and 75 words — the API's caps. A pasted
+  stack trace goes over them easily and comes back as exit 1 /
+  `validation (422)`. Keep the error line and the frames that name the user's
+  own code.
 
 ## Search
 
