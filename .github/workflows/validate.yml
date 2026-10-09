@@ -53,7 +53,7 @@ jobs:
           # Every tracked top-level entry except dev-only ones, so a new plugin
           # directory missing from install.sh's PLUGIN_FILES fails here.
           expected="$(git ls-files | cut -d/ -f1 | LC_ALL=C sort -u \
-            | grep -vxE '\.github|\.gitignore|install\.sh|scripts' | tr '\n' ' ')"
+            | grep -vxE '\.github|\.gitignore|install\.sh|renovate\.json|scripts' | tr '\n' ' ')"
           actual="$(cd "$dst" && LC_ALL=C ls -A | tr '\n' ' ')"
           if [ "$actual" != "$expected" ]; then
             echo "error: installed top level is '$actual', expected '$expected'" >&2
