@@ -1,0 +1,79 @@
+name: Validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+
+      - name: Bash syntax check (install.sh)
+        run: bash -n install.sh
+
+      - name: Validate manifest + frontmatter
+        run: node scripts/validate-template.mjs
+
+      - name: Validator rejects unsafe bx query quoting
+        run: |
+          # Double-quoted (also after flags), not last, missing --, inline span,
+          # a chained command (also via a quote continued onto the next line)
+          # ending in its own -- 'x', output redirected to a file.
+          for snippet in \
+            '```bash\nbx context "q"\n```' \
+            '```bash\nbx context --max-tokens 4096 "q"\n```' \
+            "\`\`\`bash\nbx web 'q' --freshness pm\n\`\`\`" \
+            "\`\`\`bash\nbx context 'q' --goggles '\$boost=5,site=docs.rs\n/blog/\$downrank=3'\n\`\`\`" \
+            "\`\`\`bash\nbx web -- 'q'; \$(id) -- 'x'\n\`\`\`" \
+            "\`\`\`bash\nbx web -- 'q\n' && id -- 'x'\n\`\`\`" \
+            "\`\`\`bash\nbx web -- 'q' >out.json\n\`\`\`" \
+            'Run `bx "q"` now.'; do
+            tmp="$(mktemp -d)"
+            tar --exclude=.git -cf - . | tar -xf - -C "$tmp"
+            printf "\n$snippet\n" >> "$tmp/docs/api-key-setup.md"
+            if node "$tmp/scripts/validate-template.mjs"; then
+              echo "error: the bx quoting check should have failed on: $snippet" >&2
+              exit 1
+            fi
+          done
+
+      - name: Install/uninstall cycle ships only plugin files and spares clones
+        run: |
+          home="$(mktemp -d)"
+          dst="$home/.cursor/plugins/local/brave-search"
+          printf 'export BRAVE_SEARCH_API_KEY=secret\n' > .envrc
+          printf 'K=secret\n' > docs/.env
+          HOME="$home" bash install.sh
+          HOME="$home" bash install.sh
+          # Every tracked top-level entry except dev-only ones, so a new plugin
+          # directory missing from install.sh's PLUGIN_FILES fails here.
+          expected="$(git ls-files | cut -d/ -f1 | LC_ALL=C sort -u \
+            | grep -vxE '\.github|\.gitignore|install\.sh|renovate\.json|scripts' | tr '\n' ' ')"
+          actual="$(cd "$dst" && LC_ALL=C ls -A | tr '\n' ' ')"
+          if [ "$actual" != "$expected" ]; then
+            echo "error: installed top level is '$actual', expected '$expected'" >&2
+            exit 1
+          fi
+          test ! -e "$dst/docs/.env"
+          HOME="$home" bash install.sh --uninstall
+          test ! -e "$dst"
+          test -z "$(find "$home/.cursor/plugins/local" -maxdepth 1 -name '.brave-search.tmp.*')"
+          # A clone at the plugin path is never replaced or removed.
+          mkdir -p "$dst/.git" && cp -R .cursor-plugin "$dst/"
+          if HOME="$home" bash install.sh; then
+            echo "error: install replaced a clone" >&2
+            exit 1
+          fi
+          HOME="$home" bash install.sh --uninstall
+          test -d "$dst/.git"
+          rm -rf "$home" .envrc docs/.env

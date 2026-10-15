@@ -1,0 +1,23 @@
+{
+  "name": "brave-search",
+  "displayName": "Brave Search API",
+  "version": "1.0.0",
+  "description": "Live web search from Brave's independent index — token-budgeted grounding for docs and errors, forum threads, and recent releases and advisories via the bx CLI.",
+  "author": {
+    "name": "Brave Software",
+    "email": "searchapi-support@brave.com"
+  },
+  "homepage": "https://brave.com/search/api/",
+  "repository": "https://github.com/brave/brave-search-cursor-plugin",
+  "license": "MIT",
+  "keywords": [
+    "brave",
+    "search",
+    "web-search",
+    "rag",
+    "llm-context",
+    "grounding",
+    "goggles"
+  ],
+  "logo": "assets/logo.svg"
+}
