@@ -1,0 +1,20 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors / agents
+.vscode/
+.idea/
+.claude/
+*.swp
+*~
+
+# Node (only used by scripts/validate-template.mjs)
+node_modules/
+
+# Local env (also covers .env.local, .env.production, .envrc)
+.env*
+.direnv/
+
+# Logs
+*.log
